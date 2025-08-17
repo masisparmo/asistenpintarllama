@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asisten Pintar - Asisten Pencatat Pintar Powered by Llama Ai</title>
     <script src="https://cdn-tailwindcss.vercel.app/"></script>
-    <!-- Library jspdf dan jszip sudah tidak diperlukan di sini -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -42,6 +41,11 @@
                     <option value="meeting">Rapat</option>
                     <option value="lecture">Kelas / Kuliah</option>
                     <option value="seminar">Seminar</option>
+                    <option value="discussion">Diskusi</option>
+                    <option value="interview">Wawancara</option>
+                    <option value="sermon">Kajian / Ceramah</option>
+                    <option value="consultation">Sesi Konsultasi</option>
+                    <option value="ideation">Pencatat Ide</option>
                 </select>
                 <input type="text" id="speakerName" placeholder="Pembicara (jika ada)" class="p-2 border border-slate-300 rounded-lg">
                 <input type="date" id="meetingDate" class="p-2 border border-slate-300 rounded-lg">
@@ -68,7 +72,8 @@
                         <label class="block text-sm font-medium text-slate-700 mb-2">Pilih Sumber Suara:</label>
                         <div class="flex flex-wrap gap-x-4 gap-y-2">
                             <label class="flex items-center"><input type="radio" name="audioSource" value="mic" class="mr-2" checked> Mikrofon</label>
-                            <label class="flex items-center"><input type="radio" name="audioSource" value="speaker" class="mr-2"> Speaker</label>
+                            <label class="flex items-center"><input type="radio" name="audioSource" value="speaker" class="mr-2"> Speaker (Audio Sistem)</label>
+                            <label class="flex items-center"><input type="radio" name="audioSource" value="both" class="mr-2"> Keduanya</label>
                         </div>
                     </div>
                     <button id="recordButton" class="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center space-x-2 shadow-sm">
@@ -128,11 +133,9 @@
             </div>
         </div>
         
-        <!-- [DIUBAH] Log disembunyikan di balik tombol, teks judul dihilangkan -->
         <div class="mt-8">
-            <div class="flex justify-end items-center mb-2 h-9"> <!-- Memberi tinggi tetap agar layout tidak bergeser -->
+            <div class="flex justify-end items-center mb-2 h-9">
                 <button id="toggleLogButton" class="p-2 rounded-full hover:bg-slate-200 transition-colors" title="Tampilkan/Sembunyikan Log Developer">
-                    <!-- Terminal Icon SVG -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="text-slate-600" viewBox="0 0 16 16">
                         <path d="M6 9a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3A.5.5 0 0 1 6 9zM3.854 4.146a.5.5 0 1 0-.708.708L4.793 6.5 3.146 8.146a.5.5 0 1 0 .708.708l2-2a.5.5 0 0 0 0-.708l-2-2z"/>
                         <path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12z"/>
@@ -155,7 +158,7 @@
         </footer>
     </div>
 
-    <!-- Modals (Tidak Berubah) -->
+    <!-- Modals -->
     <div id="cameraModal" class="fixed inset-0 z-50 items-center justify-center hidden flex">
         <div class="bg-white p-4 rounded-lg shadow-xl">
             <video id="camera-stream" class="rounded-md" autoplay playsinline></video>
@@ -172,7 +175,6 @@
     </div>
 
     <script type="module">
-        // --- [PENTING] Ganti URL ini dengan URL Firebase Function Anda ---
         const BACKEND_URL = 'https://asia-southeast1-asistenpintarllama-bf232.cloudfunctions.net/api';
 
         // --- DOM Elements ---
@@ -211,11 +213,10 @@
         const permissionError = document.getElementById('permission-error');
         const takeDocScreenshotAreaButton = document.getElementById('takeDocScreenshotAreaButton');
         const takeNoteScreenshotAreaButton = document.getElementById('takeNoteScreenshotAreaButton');
-        // [BARU] Referensi untuk Log Toggle
         const toggleLogButton = document.getElementById('toggleLogButton');
         const logWrapper = document.getElementById('logWrapper');
         
-        // --- App State (tidak berubah) ---
+        // --- App State ---
         let isRecording = false, mediaRecorder, fullTranscript = "", summaryText = "", activeStream, audioContext, audioChunks = [], timerInterval = null;
         let transcriptEmpty = true;
         let documentationImages = [];
@@ -223,7 +224,48 @@
         let currentCameraCallback = null;
         let recordedAudioBlob = null;
 
-        // --- Fungsi Inti (sebagian besar tidak berubah) ---
+        function saveState() {
+            const state = {
+                fullTranscript,
+                transcriptHTML: transcriptOutput.innerHTML,
+                summaryText,
+                summaryHTML: summaryOutput.innerHTML,
+                docImages: documentationImages.map(img => ({ dataUrl: img.dataUrl, filename: img.filename, type: img.type })),
+                ssImages: screenshotImages.map(img => ({ dataUrl: img.dataUrl, filename: img.filename, type: img.type })),
+            };
+            localStorage.setItem('asistenPintarState', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const savedState = localStorage.getItem('asistenPintarState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                fullTranscript = state.fullTranscript || "";
+                transcriptOutput.innerHTML = state.transcriptHTML || '<p class="text-slate-400">Catatan akan muncul di sini.</p>';
+                summaryText = state.summaryText || "";
+                summaryOutput.innerHTML = state.summaryHTML || '<p class="text-slate-500">Ringkasan akan muncul di sini.</p>';
+                
+                if (fullTranscript) transcriptEmpty = false;
+                if (summaryText) saveOptions.classList.remove('hidden');
+
+                documentationImages = state.docImages.map(imgData => ({ ...imgData, file: dataURLtoFile(imgData.dataUrl, imgData.filename) }));
+                screenshotImages = state.ssImages.map(imgData => ({ ...imgData, file: dataURLtoFile(imgData.dataUrl, imgData.filename) }));
+
+                renderDocPhotos();
+                renderScreenshotPhotos();
+                log('Sesi sebelumnya berhasil dimuat.', 'SUCCESS');
+            }
+        }
+
+        function dataURLtoFile(dataurl, filename) {
+            let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+            while(n--){
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new File([u8arr], filename, {type:mime});
+        }
+
         function log(message, level = 'INFO') {
             const timestamp = new Date().toLocaleTimeString();
             let colorClass = level === 'SUCCESS' ? 'text-green-400' : level === 'ERROR' ? 'text-red-400' : level === 'WARN' ? 'text-yellow-400' : 'text-blue-400';
@@ -231,7 +273,66 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        // --- Fungsi Download & Generate Laporan ---
+        async function getAudioStream() {
+            log('Attempting to get audio stream...');
+            const source = document.querySelector('input[name="audioSource"]:checked').value;
+            let micStream, displayStream;
+            try {
+                if (source === 'mic' || source === 'both') {
+                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                }
+                if (source === 'speaker' || source === 'both') {
+                    displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                }
+
+                if (source === 'mic') return micStream;
+                if (source === 'speaker') {
+                    displayStream.getVideoTracks().forEach(track => track.stop());
+                    return displayStream;
+                }
+                if (source === 'both') {
+                    const combinedAudioContext = new AudioContext();
+                    const destination = combinedAudioContext.createMediaStreamDestination();
+                    
+                    if (micStream && micStream.getAudioTracks().length > 0) {
+                        const micSource = combinedAudioContext.createMediaStreamSource(micStream);
+                        micSource.connect(destination);
+                    }
+                    if (displayStream && displayStream.getAudioTracks().length > 0) {
+                        const displaySource = combinedAudioContext.createMediaStreamSource(displayStream);
+                        displaySource.connect(destination);
+                    }
+                    
+                    const videoTracks = displayStream ? displayStream.getVideoTracks() : [];
+                    return new MediaStream([...destination.stream.getAudioTracks(), ...videoTracks]);
+                }
+            } catch (err) {
+                log(`Error getting audio stream: ${err.message}`, 'ERROR');
+                alert('Gagal mendapatkan sumber audio. Pastikan Anda memberikan izin dan memilih jendela/tab untuk dibagikan jika menggunakan mode Speaker.');
+                return null;
+            }
+        }
+
+        async function requestInitialPermissions() {
+            log('Requesting initial permissions for microphone and camera...');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+                stream.getTracks().forEach(track => track.stop());
+                log('Permissions granted successfully.', 'SUCCESS');
+                permissionModal.classList.add('hidden');
+                
+                [recordButton, takeDocPhotoButton, takeScreenshotButton, takeDocScreenshotAreaButton, takeNoteScreenshotAreaButton].forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                });
+
+            } catch (err) {
+                log(`Permission denied: ${err.message}`, 'ERROR');
+                permissionError.classList.remove('hidden');
+                permissionError.textContent = "Anda harus memberikan izin untuk menggunakan fitur inti aplikasi.";
+                grantPermissionButton.textContent = "Coba Lagi";
+            }
+        }
 
         function generateBaseFilename() {
             const name = (document.getElementById('meetingName').value.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'acara');
@@ -269,13 +370,8 @@
             URL.revokeObjectURL(url);
         }
 
-        function downloadTxt() {
-            downloadAsFile(`${generateBaseFilename()}.txt`, generateReportContent('txt'), 'text/plain;charset=utf-8;');
-        }
-
-        function downloadMd() {
-            downloadAsFile(`${generateBaseFilename()}.md`, generateReportContent('md'), 'text/markdown;charset=utf-8;');
-        }
+        function downloadTxt() { downloadAsFile(`${generateBaseFilename()}.txt`, generateReportContent('txt'), 'text/plain;charset=utf-8;'); }
+        function downloadMd() { downloadAsFile(`${generateBaseFilename()}.md`, generateReportContent('md'), 'text/markdown;charset=utf-8;'); }
         
         async function downloadPdf() {
             const button = downloadPdfBtn;
@@ -285,32 +381,18 @@
             const spinner = document.createElement('div');
             spinner.className = 'loader btn-spinner';
             button.prepend(spinner);
-
             const filename = `${generateBaseFilename()}.pdf`;
-            log(`Requesting PDF generation from backend: ${filename}`);
-
             try {
                 const response = await fetch(`${BACKEND_URL}/generate-pdf`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        reportContent: generateReportContent('md'),
-                        filename: filename
-                    })
+                    body: JSON.stringify({ reportContent: generateReportContent('md'), filename: filename })
                 });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-
+                if (!response.ok) throw new Error((await response.json()).error || 'Server error');
                 const blob = await response.blob();
                 downloadAsFile(filename, blob, 'application/pdf');
-                log('PDF downloaded successfully from backend.', 'SUCCESS');
-
             } catch (error) {
-                log(`Failed to generate PDF from backend: ${error.message}`, 'ERROR');
-                alert(`Gagal membuat PDF: ${error.message}`);
+                log(`Failed to generate PDF: ${error.message}`, 'ERROR');
             } finally {
                 button.disabled = false;
                 button.querySelector('span').textContent = originalText;
@@ -328,11 +410,7 @@
 
         async function downloadPhotosAsZip() {
             const allImages = [...documentationImages, ...screenshotImages];
-            if (allImages.length === 0) {
-                alert('Tidak ada foto untuk diunduh.');
-                return;
-            }
-
+            if (allImages.length === 0) { alert('Tidak ada foto untuk diunduh.'); return; }
             const button = downloadPhotosBtn;
             const originalText = button.querySelector('span').textContent;
             button.disabled = true;
@@ -340,36 +418,17 @@
             const spinner = document.createElement('div');
             spinner.className = 'loader btn-spinner';
             button.prepend(spinner);
-            
             const zipFilename = `${generateBaseFilename()}_fotos.zip`;
-            log(`Requesting ZIP generation from backend: ${zipFilename}`);
-
             const formData = new FormData();
             formData.append('zipFilename', zipFilename);
-            allImages.forEach((img, index) => {
-                const filename = img.filename || generateImageFilename(img.type, index);
-                formData.append('files', img.file, filename);
-                formData.append('filenames', filename);
-            });
-
+            allImages.forEach((img) => { formData.append('files', img.file, img.filename); });
             try {
-                const response = await fetch(`${BACKEND_URL}/generate-zip`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-
+                const response = await fetch(`${BACKEND_URL}/generate-zip`, { method: 'POST', body: formData });
+                if (!response.ok) throw new Error((await response.json()).error || 'Server error');
                 const blob = await response.blob();
                 downloadAsFile(zipFilename, blob, 'application/zip');
-                log('ZIP file downloaded successfully from backend.', 'SUCCESS');
-
             } catch (error) {
-                log(`Failed to generate ZIP from backend: ${error.message}`, 'ERROR');
-                alert(`Gagal membuat ZIP: ${error.message}`);
+                log(`Failed to generate ZIP: ${error.message}`, 'ERROR');
             } finally {
                 button.disabled = false;
                 button.querySelector('span').textContent = originalText;
@@ -377,14 +436,12 @@
             }
         }
 
-        // --- SISA KODE DARI FILE ASLI ANDA ---
-        // (Salin semua fungsi dari `updateTranscript` hingga akhir event listener `window.addEventListener('load', ...)`
-        // dari file `index.html` Anda yang lama ke sini)
         function updateTranscript(newText, source) {
             if (transcriptEmpty) { transcriptOutput.innerHTML = ""; transcriptEmpty = false; }
             transcriptOutput.innerHTML += `<div class="mb-2 p-2 bg-slate-100 rounded"><strong>${source}:</strong> ${newText}</div>`;
             fullTranscript += `[${source}]:\n${newText}\n\n`;
             summarizeButton.disabled = false;
+            saveState();
         }
         async function summarizeTranscript() {
             log('Summarization process started.');
@@ -402,6 +459,7 @@
                 summaryText = result.choices[0]?.message?.content;
                 summaryOutput.innerHTML = markdownToHtml(summaryText);
                 saveOptions.classList.remove('hidden');
+                saveState();
             } catch (error) {
                 log(error.message, 'ERROR');
             } finally {
@@ -418,10 +476,38 @@
         downloadAudioBtn.addEventListener('click', downloadAudio);
         downloadPhotosBtn.addEventListener('click', downloadPhotosAsZip);
         summarizeButton.addEventListener('click', summarizeTranscript);
-        
-        // [BARU] Event listener untuk tombol log
-        toggleLogButton.addEventListener('click', () => {
-            logWrapper.classList.toggle('hidden');
+        toggleLogButton.addEventListener('click', () => { logWrapper.classList.toggle('hidden'); });
+        grantPermissionButton.addEventListener('click', requestInitialPermissions);
+
+        window.addEventListener('load', async () => {
+            log('Asisten Pintar initialized.');
+            loadState();
+
+            try {
+                const micStatus = await navigator.permissions.query({ name: 'microphone' });
+                const camStatus = await navigator.permissions.query({ name: 'camera' });
+
+                if (micStatus.state === 'prompt' || camStatus.state === 'prompt') {
+                    permissionModal.classList.remove('hidden');
+                    [recordButton, takeDocPhotoButton, takeScreenshotButton, takeDocScreenshotAreaButton, takeNoteScreenshotAreaButton].forEach(btn => {
+                        btn.disabled = true;
+                        btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    });
+                } else if (micStatus.state === 'denied' || camStatus.state === 'denied') {
+                    permissionModal.classList.remove('hidden');
+                    permissionError.textContent = "Akses ditolak. Harap aktifkan izin di pengaturan browser Anda.";
+                    permissionError.classList.remove('hidden');
+                    // [DIPERBAIKI] Tombol tidak di-disable dan diberi event handler
+                    grantPermissionButton.textContent = "Panduan Aktifkan Izin";
+                    grantPermissionButton.onclick = () => {
+                        alert("Untuk mengaktifkan izin, silakan klik ikon gembok (atau 'i') di sebelah kiri alamat URL situs ini, lalu ubah pengaturan untuk Mikrofon dan Kamera menjadi 'Izinkan' (Allow).");
+                    };
+                } else {
+                    log('Permissions already granted.');
+                }
+            } catch (e) {
+                log('Permission API not supported, will ask on first use.', 'WARN');
+            }
         });
 
     </script>
