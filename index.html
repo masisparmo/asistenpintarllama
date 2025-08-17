@@ -357,23 +357,39 @@
             }
         }
 
+        // [DIPERBAIKI] Penanganan error yang lebih detail
+        async function handleApiCall(url, options, context) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    let errorText;
+                    try {
+                        const errorData = await response.json();
+                        errorText = errorData.error || JSON.stringify(errorData);
+                    } catch (e) {
+                        errorText = await response.text();
+                    }
+                    throw new Error(errorText);
+                }
+                return await response.json();
+            } catch (error) {
+                log(`${context} failed: ${error.message}`, 'ERROR');
+                statusSpan.textContent = `Gagal ${context}.`;
+                throw error; // Melempar error lagi agar bisa ditangani di pemanggil
+            }
+        }
+
         async function transcribeAudio(audioBlob) {
             statusSpan.textContent = 'Mentranskripsi...';
             statusLoader.classList.remove('hidden');
             const formData = new FormData();
             formData.append('file', audioBlob, 'recording.webm');
             try {
-                const response = await fetch(`${BACKEND_URL}/transcribe`, { method: 'POST', body: formData });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-                const result = await response.json();
+                const result = await handleApiCall(`${BACKEND_URL}/transcribe`, { method: 'POST', body: formData }, 'Transcription');
                 updateTranscript(result.text, "Suara");
                 statusSpan.textContent = 'Transkripsi berhasil!';
             } catch (error) {
-                log(`Transcription failed: ${error.message}`, 'ERROR');
-                statusSpan.textContent = 'Gagal mentranskripsi.';
+                // Log sudah dilakukan di dalam handleApiCall
             } finally {
                 statusLoader.classList.add('hidden');
             }
@@ -407,18 +423,12 @@
             const formData = new FormData();
             formData.append('file', file);
             try {
-                const response = await fetch(`${BACKEND_URL}/analyze-image`, { method: 'POST', body: formData });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-                const result = await response.json();
+                const result = await handleApiCall(`${BACKEND_URL}/analyze-image`, { method: 'POST', body: formData }, 'Image analysis');
                 const generatedText = result.choices[0]?.message?.content || "Tidak dapat menganalisis gambar.";
                 updateTranscript(generatedText, "Gambar");
                 statusSpan.textContent = 'Analisis berhasil.';
             } catch (error) {
-                log(`Image analysis failed: ${error.message}`, 'ERROR');
-                statusSpan.textContent = 'Gagal menganalisis.';
+                // Log sudah dilakukan di dalam handleApiCall
             } finally {
                 statusLoader.classList.add('hidden');
             }
