@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tentang Aplikasi - Asisten Pintar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .content-section h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .content-section p, .content-section li {
+            line-height: 1.75;
+        }
+        .content-section ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .lang-btn.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .tech-badge {
+            display: inline-block;
+            background-color: #eef2ff;
+            color: #4338ca;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0.25rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto max-w-4xl p-4 sm:p-8">
+        <header class="text-center mb-8">
+            <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-slate-900">Tentang Asisten Pintar</h1>
+            <p id="main-subtitle" class="text-slate-600 mt-2">Sebuah Alat Pencatat Cerdas</p>
+        </header>
+
+        <!-- Language Switcher -->
+        <div class="flex justify-center mb-8 bg-slate-200 p-1 rounded-lg">
+            <button id="btn-id" class="lang-btn active w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">Bahasa Indonesia</button>
+            <button id="btn-en" class="lang-btn w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">English</button>
+        </div>
+
+        <!-- Indonesian Content -->
+        <div id="content-id" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md">
+            <h3>Deskripsi</h3>
+            <p>Asisten Pintar adalah aplikasi web cerdas yang dirancang untuk mengubah rapat, kuliah, atau sesi wawancara menjadi ringkasan yang terstruktur dan actionable. Dengan menggabungkan berbagai sumber input seperti suara, gambar, dan teks, aplikasi ini secara otomatis membuat transkrip dan notulensi yang komprehensif.</p>
+
+            <h3>Untuk Siapa Aplikasi Ini?</h3>
+            <p>Profesional, Mahasiswa, Jurnalis, Peneliti, dan siapa saja yang perlu mendokumentasikan diskusi atau presentasi secara efisien tanpa kehilangan detail penting.</p>
+
+            <h3>Mengapa Memakai Aplikasi Ini?</h3>
+            <ul>
+                <li><b>Hemat Waktu:</b> Secara drastis mengurangi waktu yang dihabiskan untuk membuat notulensi manual.</li>
+                <li><b>Tingkatkan Fokus:</b> Memungkinkan Anda untuk fokus penuh pada diskusi tanpa khawatir harus mencatat setiap detail.</li>
+                <li><b>Hasil Terstruktur:</b> Dapatkan output yang rapi, terstruktur, dan mudah dibagikan kepada tim atau kolega.</li>
+                <li><b>Multi-Modal:</b> Mengubah informasi verbal dan visual menjadi teks yang dapat dicari dan dianalisis.</li>
+            </ul>
+
+            <h3>Fitur-fitur Utama</h3>
+            <ul>
+                <li>Perekaman Suara Multi-sumber (Mikrofon & Audio Sistem)</li>
+                <li>Transkripsi Audio Otomatis (Speech-to-Text)</li>
+                <li>Analisis Gambar & Screenshot (Image-to-Text)</li>
+                <li>Input Catatan Manual secara Real-time</li>
+                <li>Peringkasan Cerdas Berbasis AI (didukung oleh model Llama)</li>
+                <li>Ekspor Laporan ke berbagai format (PDF, TXT, MD)</li>
+                <li>Unduh Aset (Rekaman Suara & Kumpulan Foto dalam format .zip)</li>
+            </ul>
+
+            <h3>Teknologi yang Dipakai</h3>
+            <div>
+                <span class="tech-badge">Frontend: HTML5</span>
+                <span class="tech-badge">Styling: Tailwind CSS</span>
+                <span class="tech-badge">Logic: Vanilla JavaScript</span>
+                <span class="tech-badge">Backend: Firebase Functions</span>
+                <span class="tech-badge">Server: Node.js, Express.js</span>
+                <span class="tech-badge">AI/ML: Groq API</span>
+                <span class="tech-badge">Models: Llama 3, Llama 4, Whisper</span>
+                <span class="tech-badge">Hosting: GitHub Pages & Firebase</span>
+            </div>
+
+            <h3>Lima Ide Pengembangan Fitur</h3>
+            <ol class="list-decimal pl-5">
+                <li><b>Identifikasi Pembicara (Speaker Diarization):</b> Membedakan dan memberi label siapa yang berbicara dalam transkrip secara otomatis.</li>
+                <li><b>Integrasi Kalender:</b> Otomatis menarik detail acara (judul, peserta) dari Google Calendar atau Outlook untuk pengisian form.</li>
+                <li><b>Kolaborasi Real-time:</b> Memungkinkan beberapa pengguna untuk menambahkan catatan dan gambar ke sesi yang sama secara bersamaan.</li>
+                <li><b>Pencarian Universal:</b> Fitur pencarian canggih untuk menemukan kembali informasi dari semua sesi sebelumnya yang tersimpan di cloud.</li>
+                <li><b>Ekspor ke Platform Lain:</b> Tombol sekali klik untuk mengirim *action items* atau ringkasan ke Trello, Asana, atau Slack.</li>
+            </ol>
+
+            <h3>Kontak Developer</h3>
+            <p>
+                <b>Ir. Isparmo</b><br>
+                Website: <a href="https://www.isparmo.com" target="_blank" class="text-indigo-600 hover:underline">www.isparmo.com</a><br>
+                Email: <a href="mailto:mail@isparmo.com" class="text-indigo-600 hover:underline">mail@isparmo.com</a><br>
+                HP/WA: <a href="tel:+628121083060" class="text-indigo-600 hover:underline">0812 108 3060</a>
+            </p>
+        </div>
+
+        <!-- English Content -->
+        <div id="content-en" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md hidden">
+            <h3>Description</h3>
+            <p>Asisten Pintar is a smart web application designed to transform meetings, lectures, or interview sessions into structured and actionable summaries. By combining various input sources like voice, images, and text, the app automatically creates comprehensive transcripts and notes.</p>
+
+            <h3>Who Is This App For?</h3>
+            <p>Professionals, students, journalists, researchers, and anyone who needs to document discussions or presentations efficiently without losing important details.</p>
+
+            <h3>Why Use This App?</h3>
+            <ul>
+                <li><b>Save Time:</b> Drastically reduce the time spent on manual note-taking.</li>
+                <li><b>Increase Focus:</b> Allows you to fully focus on the discussion without the worry of jotting down every detail.</li>
+                <li><b>Structured Results:</b> Get neat, structured, and easily shareable outputs for your team or colleagues.</li>
+                <li><b>Multi-Modal:</b> Transforms verbal and visual information into searchable and analyzable text.</li>
+            </ul>
+
+            <h3>Key Features</h3>
+            <ul>
+                <li>Multi-source Audio Recording (Microphone & System Audio)</li>
+                <li>Automatic Audio Transcription (Speech-to-Text)</li>
+                <li>Image & Screenshot Analysis (Image-to-Text)</li>
+                <li>Real-time Manual Note Input</li>
+                <li>AI-Powered Smart Summarization (powered by Llama models)</li>
+                <li>Export Reports to Multiple Formats (PDF, TXT, MD)</li>
+                <li>Download Assets (Audio Recording & Photo Collection in .zip format)</li>
+            </ul>
+
+            <h3>Technology Stack</h3>
+            <div>
+                <span class="tech-badge">Frontend: HTML5</span>
+                <span class="tech-badge">Styling: Tailwind CSS</span>
+                <span class="tech-badge">Logic: Vanilla JavaScript</span>
+                <span class="tech-badge">Backend: Firebase Functions</span>
+                <span class="tech-badge">Server: Node.js, Express.js</span>
+                <span class="tech-badge">AI/ML: Groq API</span>
+                <span class="tech-badge">Models: Llama 3, Llama 4, Whisper</span>
+                <span class="tech-badge">Hosting: GitHub Pages & Firebase</span>
+            </div>
+
+            <h3>Five Ideas for Future Features</h3>
+            <ol class="list-decimal pl-5">
+                <li><b>Speaker Diarization:</b> Automatically differentiate and label who is speaking in the transcript.</li>
+                <li><b>Calendar Integration:</b> Automatically pull event details (title, attendees) from Google Calendar or Outlook to pre-fill the form.</li>
+                <li><b>Real-time Collaboration:</b> Allow multiple users to add notes and images to the same session simultaneously.</li>
+                <li><b>Universal Search:</b> An advanced search feature to find information across all past sessions stored in the cloud.</li>
+                <li><b>Export to Other Platforms:</b> One-click buttons to send action items or summaries to Trello, Asana, or Slack.</li>
+            </ol>
+
+            <h3>Developer Contact</h3>
+            <p>
+                <b>Ir. Isparmo</b><br>
+                Website: <a href="https://www.isparmo.com" target="_blank" class="text-indigo-600 hover:underline">www.isparmo.com</a><br>
+                Email: <a href="mailto:mail@isparmo.com" class="text-indigo-600 hover:underline">mail@isparmo.com</a><br>
+                Phone/WA: <a href="tel:+628121083060" class="text-indigo-600 hover:underline">0812 108 3060</a>
+            </p>
+        </div>
+        
+        <footer class="text-center mt-8 text-sm text-slate-500">
+            <p id="footer-text">Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.</p>
+        </footer>
+    </div>
+
+    <script>
+        const btnId = document.getElementById('btn-id');
+        const btnEn = document.getElementById('btn-en');
+        const contentId = document.getElementById('content-id');
+        const contentEn = document.getElementById('content-en');
+        const mainTitle = document.getElementById('main-title');
+        const mainSubtitle = document.getElementById('main-subtitle');
+        const footerText = document.getElementById('footer-text');
+
+        btnId.addEventListener('click', () => {
+            contentId.classList.remove('hidden');
+            contentEn.classList.add('hidden');
+            btnId.classList.add('active');
+            btnEn.classList.remove('active');
+            document.documentElement.lang = 'id';
+            mainTitle.textContent = 'Tentang Asisten Pintar';
+            mainSubtitle.textContent = 'Sebuah Alat Pencatat Cerdas';
+            footerText.textContent = 'Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.';
+        });
+
+        btnEn.addEventListener('click', () => {
+            contentEn.classList.remove('hidden');
+            contentId.classList.add('hidden');
+            btnEn.classList.add('active');
+            btnId.classList.remove('active');
+            document.documentElement.lang = 'en';
+            mainTitle.textContent = 'About Asisten Pintar';
+            mainSubtitle.textContent = 'A Smart Note-Taking Tool';
+            footerText.textContent = 'Documentation for Asisten Pintar - Meta-Hacktiv8 Hackathon 2025.';
+        });
+    </script>
+</body>
+</html>
