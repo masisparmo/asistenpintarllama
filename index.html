@@ -224,8 +224,6 @@
         let currentCameraCallback = null;
         let recordedAudioBlob = null;
 
-        // --- [DIPERBAIKI] Script lengkap dikembalikan ---
-
         function saveState() {
             const state = {
                 fullTranscript,
@@ -366,12 +364,15 @@
             formData.append('file', audioBlob, 'recording.webm');
             try {
                 const response = await fetch(`${BACKEND_URL}/transcribe`, { method: 'POST', body: formData });
-                if (!response.ok) throw new Error('Transcription failed');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
                 updateTranscript(result.text, "Suara");
                 statusSpan.textContent = 'Transkripsi berhasil!';
             } catch (error) {
-                log(error.message, 'ERROR');
+                log(`Transcription failed: ${error.message}`, 'ERROR');
                 statusSpan.textContent = 'Gagal mentranskripsi.';
             } finally {
                 statusLoader.classList.add('hidden');
@@ -407,13 +408,16 @@
             formData.append('file', file);
             try {
                 const response = await fetch(`${BACKEND_URL}/analyze-image`, { method: 'POST', body: formData });
-                if (!response.ok) throw new Error('Image analysis failed');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
                 const generatedText = result.choices[0]?.message?.content || "Tidak dapat menganalisis gambar.";
                 updateTranscript(generatedText, "Gambar");
                 statusSpan.textContent = 'Analisis berhasil.';
             } catch (error) {
-                log(error.message, 'ERROR');
+                log(`Image analysis failed: ${error.message}`, 'ERROR');
                 statusSpan.textContent = 'Gagal menganalisis.';
             } finally {
                 statusLoader.classList.add('hidden');
@@ -636,7 +640,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ theme: document.getElementById('summaryTheme').value, content: combinedContent })
                 });
-                if (!response.ok) throw new Error('Summarization failed');
+                if (!response.ok) throw new Error((await response.json()).error || 'Summarization failed');
                 const result = await response.json();
                 summaryText = result.choices[0]?.message?.content;
                 summaryOutput.innerHTML = markdownToHtml(summaryText);
@@ -721,4 +725,4 @@
 
     </script>
 </body>
-</html
+</html>
