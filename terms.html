@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ketentuan Layanan - Asisten Pintar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .content-section h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .content-section p, .content-section li {
+            line-height: 1.75;
+        }
+        .content-section ol {
+            list-style-type: decimal;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .lang-btn.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto max-w-4xl p-4 sm:p-8">
+        <header class="text-center mb-8">
+            <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-slate-900">Ketentuan Layanan</h1>
+            <p id="main-subtitle" class="text-slate-600 mt-2">Asisten Pintar App</p>
+        </header>
+
+        <!-- Language Switcher -->
+        <div class="flex justify-center mb-8 bg-slate-200 p-1 rounded-lg">
+            <button id="btn-id" class="lang-btn active w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">Bahasa Indonesia</button>
+            <button id="btn-en" class="lang-btn w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">English</button>
+        </div>
+
+        <!-- Indonesian Content -->
+        <div id="content-id" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md">
+            <p><strong>Tanggal Efektif:</strong> 12 Agustus 2025</p>
+
+            <h3>1. Penerimaan Ketentuan</h3>
+            <p>Dengan mengakses atau menggunakan aplikasi Asisten Pintar ("Layanan"), Anda setuju untuk terikat oleh Ketentuan Layanan ini. Jika Anda tidak setuju dengan bagian mana pun dari ketentuan ini, Anda tidak diizinkan untuk menggunakan Layanan.</p>
+
+            <h3>2. Deskripsi Layanan</h3>
+            <p>Asisten Pintar adalah alat produktivitas yang dirancang untuk membantu pengguna mentranskripsi rekaman audio, menganalisis gambar, dan membuat ringkasan cerdas dari konten yang diberikan. Layanan ini menggunakan API pihak ketiga (Groq) untuk melakukan tugas-tugas pemrosesan AI.</p>
+
+            <h3>3. Tanggung Jawab Pengguna</h3>
+            <p>Anda bertanggung jawab penuh atas data (audio, gambar, teks) yang Anda proses melalui Layanan. Anda setuju untuk tidak menggunakan Layanan untuk tujuan apa pun yang melanggar hukum atau dilarang oleh ketentuan ini, termasuk namun tidak terbatas pada:</p>
+            <ol class="list-decimal pl-5 mt-2">
+                <li>Memproses materi yang melanggar hak kekayaan intelektual pihak lain.</li>
+                <li>Mengunggah konten yang mengandung virus atau kode berbahaya lainnya.</li>
+                <li>Merekam percakapan tanpa persetujuan dari semua pihak yang terlibat, jika diwajibkan oleh hukum.</li>
+            </ol>
+
+            <h3>4. Kepemilikan Intelektual</h3>
+            <p>Anda tetap memiliki semua hak atas konten asli yang Anda proses melalui Layanan. Kami tidak mengklaim kepemilikan atas data Anda. Namun, semua hak, kepemilikan, dan kepentingan dalam dan terhadap Layanan itu sendiri (termasuk kode, desain, dan merek) adalah dan akan tetap menjadi milik eksklusif pengembang Asisten Pintar.</p>
+
+            <h3>5. Penafian Jaminan</h3>
+            <p>Layanan ini disediakan "SEBAGAIMANA ADANYA" dan "SEBAGAIMANA TERSEDIA", tanpa jaminan apa pun, baik tersurat maupun tersirat. Kami tidak menjamin bahwa Layanan akan selalu akurat, andal, tidak terganggu, atau bebas dari kesalahan.</p>
+
+            <h3>6. Batasan Tanggung Jawab</h3>
+            <p>Dalam keadaan apa pun, pengembang Asisten Pintar tidak akan bertanggung jawab atas kerugian tidak langsung, insidental, khusus, konsekuensial, atau ganti rugi, termasuk namun tidak terbatas pada, kehilangan keuntungan, data, atau kerugian tak berwujud lainnya, yang diakibatkan oleh penggunaan atau ketidakmampuan Anda untuk menggunakan Layanan.</p>
+
+            <h3>7. Perubahan pada Ketentuan</h3>
+            <p>Kami berhak, atas kebijakan kami sendiri, untuk mengubah atau mengganti Ketentuan ini kapan saja. Kami akan memberitahukan perubahan materi dengan memposting ketentuan baru di halaman ini.</p>
+
+            <h3>8. Hubungi Kami</h3>
+            <p>Jika Anda memiliki pertanyaan tentang Ketentuan Layanan ini, silakan hubungi kami melalui email di <a href="mailto:support@isparmo.com" class="text-indigo-600 hover:text-indigo-800">support@isparmo.com</a>.</p>
+        </div>
+
+        <!-- English Content -->
+        <div id="content-en" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md hidden">
+            <p><strong>Effective Date:</strong> August 12, 2025</p>
+
+            <h3>1. Acceptance of Terms</h3>
+            <p>By accessing or using the Asisten Pintar application ("Service"), you agree to be bound by these Terms of Service. If you disagree with any part of the terms, then you may not access the Service.</p>
+
+            <h3>2. Description of Service</h3>
+            <p>Asisten Pintar is a productivity tool designed to help users transcribe audio recordings, analyze images, and create intelligent summaries from provided content. The Service utilizes third-party APIs (Groq) to perform AI processing tasks.</p>
+
+            <h3>3. User Responsibilities</h3>
+            <p>You are solely responsible for the data (audio, images, text) that you process through the Service. You agree not to use the Service for any purpose that is unlawful or prohibited by these terms, including but not limited to:</p>
+            <ol class="list-decimal pl-5 mt-2">
+                <li>Processing material that infringes on the intellectual property rights of others.</li>
+                <li>Uploading content that contains viruses or other malicious code.</li>
+                <li>Recording conversations without the consent of all parties involved, where required by law.</li>
+            </ol>
+
+            <h3>4. Intellectual Property</h3>
+            <p>You retain all rights to the original content you process through the Service. We claim no ownership over your data. However, all rights, title, and interest in and to the Service itself (including its code, design, and branding) are and will remain the exclusive property of the developers of Asisten Pintar.</p>
+
+            <h3>5. Disclaimer of Warranties</h3>
+            <p>The Service is provided on an "AS IS" and "AS AVAILABLE" basis, without any warranty of any kind, whether express or implied. We do not warrant that the Service will be accurate, reliable, uninterrupted, or error-free.</p>
+
+            <h3>6. Limitation of Liability</h3>
+            <p>In no event shall the developers of Asisten Pintar be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
+
+            <h3>7. Changes to Terms</h3>
+            <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. We will notify of material changes by posting the new terms on this page.</p>
+
+            <h3>8. Contact Us</h3>
+            <p>If you have any questions about these Terms of Service, please contact us via email at <a href="mailto:support@isparmo.com" class="text-indigo-600 hover:text-indigo-800">support@isparmo.com</a>.</p>
+        </div>
+        
+        <footer class="text-center mt-8 text-sm text-slate-500">
+            <p id="footer-text">Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.</p>
+        </footer>
+    </div>
+
+    <script>
+        const btnId = document.getElementById('btn-id');
+        const btnEn = document.getElementById('btn-en');
+        const contentId = document.getElementById('content-id');
+        const contentEn = document.getElementById('content-en');
+        const mainTitle = document.getElementById('main-title');
+        const mainSubtitle = document.getElementById('main-subtitle');
+        const footerText = document.getElementById('footer-text');
+
+        btnId.addEventListener('click', () => {
+            contentId.classList.remove('hidden');
+            contentEn.classList.add('hidden');
+            btnId.classList.add('active');
+            btnEn.classList.remove('active');
+            document.documentElement.lang = 'id';
+            mainTitle.textContent = 'Ketentuan Layanan';
+            mainSubtitle.textContent = 'Asisten Pintar App';
+            footerText.textContent = 'Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.';
+        });
+
+        btnEn.addEventListener('click', () => {
+            contentEn.classList.remove('hidden');
+            contentId.classList.add('hidden');
+            btnEn.classList.add('active');
+            btnId.classList.remove('active');
+            document.documentElement.lang = 'en';
+            mainTitle.textContent = 'Terms of Service';
+            mainSubtitle.textContent = 'Asisten Pintar App';
+            footerText.textContent = 'Documentation for Asisten Pintar - Meta-Hacktiv8 Hackathon 2025.';
+        });
+    </script>
+</body>
+</html>
