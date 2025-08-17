@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limitasi Aplikasi - Asisten Pintar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .content-section h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .content-section h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .content-section ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+        .lang-btn.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto max-w-4xl p-4 sm:p-8">
+        <header class="text-center mb-8">
+            <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-slate-900">Limitasi dan Skalabilitas</h1>
+            <p id="main-subtitle" class="text-slate-600 mt-2">Asisten Pintar App</p>
+        </header>
+
+        <!-- Language Switcher -->
+        <div class="flex justify-center mb-8 bg-slate-200 p-1 rounded-lg">
+            <button id="btn-id" class="lang-btn active w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">Bahasa Indonesia</button>
+            <button id="btn-en" class="lang-btn w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">English</button>
+        </div>
+
+        <!-- Indonesian Content -->
+        <div id="content-id" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md">
+            <h3>Pendahuluan</h3>
+            <p>Dokumen ini menguraikan batasan teknis (limitasi) dan potensi skalabilitas dari aplikasi "Asisten Pintar". Performa dan kapasitas aplikasi ini sangat bergantung pada <i>rate limits</i> dari API Groq yang digunakan sebagai mesin utama untuk transkripsi, terjemahan, analisis gambar, dan pembuatan ringkasan cerdas.</p>
+            <p class="mt-2">Pemahaman terhadap limitasi ini sangat penting untuk merencanakan penggunaan aplikasi dalam skala yang lebih besar dan untuk mengidentifikasi strategi mitigasi yang diperlukan.</p>
+
+            <h3>Limitasi Utama (Berdasarkan Rate Limits Groq - Akun Gratis)</h3>
+            <p>Batasan penggunaan dihitung per menit. Berikut adalah rinciannya berdasarkan fungsi utama di dalam aplikasi:</p>
+
+            <h4>1. Fungsi Peringkasan Teks (Model: Llama3-70B-8192)</h4>
+            <p>Model ini digunakan saat pengguna menekan tombol "Buat Ringkasan".</p>
+            <ul>
+                <li><b>Requests Per Minute (RPM): 30 permintaan/menit</b>
+                    <p class="text-sm text-slate-600"><b>Artinya:</b> Aplikasi dapat memproses hingga 30 permintaan ringkasan dalam satu menit.</p>
+                </li>
+                <li><b>Tokens Per Minute (TPM): 18,000 token/menit</b>
+                    <p class="text-sm text-slate-600"><b>Artinya:</b> Total panjang teks (gabungan dari transkrip yang dikirim dan ringkasan yang dihasilkan) tidak boleh melebihi 18,000 token (sekitar 13,500 kata) dalam satu menit.</p>
+                    <p class="text-sm text-slate-600 mt-1"><b>Implikasi Praktis:</b> Batasan ini adalah salah satu <b>bottleneck (penghambat) utama</b> aplikasi. Meringkas transkrip yang sangat panjang akan menghabiskan sebagian besar kuota ini.</p>
+                </li>
+            </ul>
+
+            <h4>2. Fungsi Analisis Gambar (Model: meta-llama/llama-4-maverick-17b-128e-instruct)</h4>
+            <p>Model ini digunakan saat aplikasi menganalisis konten dari screenshot atau foto yang diunggah.</p>
+            <ul>
+                <li><b>Requests Per Minute (RPM): 30 permintaan/menit</b>
+                    <p class="text-sm text-slate-600"><b>Artinya:</b> Aplikasi dapat menganalisis hingga 30 gambar berbeda dalam satu menit.</p>
+                </li>
+                <li><b>Tokens Per Minute (TPM): 6,000 token/menit</b>
+                    <p class="text-sm text-slate-600"><b>Artinya:</b> Total token yang digunakan untuk memproses gambar dan menghasilkan deskripsi teks tidak boleh melebihi 6,000 token (sekitar 4,500 kata) dalam satu menit.</p>
+                    <p class="text-sm text-slate-600 mt-1"><b>Implikasi Praktis:</b> Dengan kuota token yang lebih rendah, fungsi analisis gambar juga menjadi <b>bottleneck signifikan</b>, terutama jika banyak gambar dianalisis secara bersamaan.</p>
+                </li>
+            </ul>
+
+            <h4>3. Fungsi Terjemahan Teks (Model: Llama3-8B-8192)</h4>
+            <p>Fungsi ini digunakan secara internal setelah transkripsi audio untuk menerjemahkan teks ke Bahasa Indonesia.</p>
+            <ul>
+                <li><b>Requests Per Minute (RPM): 30 permintaan/menit</b></li>
+                <li><b>Tokens Per Minute (TPM): 30,000 token/menit</b></li>
+                <li><p class="text-sm text-slate-600"><b>Keterangan:</b> Kuota untuk terjemahan sangat longgar dan kemungkinan besar tidak akan menjadi masalah.</p></li>
+            </ul>
+
+            <h4>4. Fungsi Transkripsi Audio (Model: Whisper-Large-V3)</h4>
+            <p>Fungsi ini digunakan setelah pengguna selesai merekam suara.</p>
+            <ul>
+                <li><b>Requests Per Minute (RPM): 100 permintaan/menit</b></li>
+                <li><p class="text-sm text-slate-600"><b>Keterangan:</b> Kuota untuk transkripsi audio sangat longgar dan tidak akan menjadi masalah.</p></li>
+            </ul>
+
+            <h3>Implikasi untuk Pengguna</h3>
+            <ul>
+                <li><b>Untuk Pengguna Tunggal:</b> Seorang pengguna individu hampir tidak mungkin mencapai batasan ini. Aplikasi akan terasa sangat cepat dan responsif.</li>
+                <li><b>Untuk Pengguna Bersamaan (Skenario Demo/Produksi):</b> Jika aplikasi digunakan oleh banyak orang secara bersamaan, <i>rate limit</i> <b>TPM (Tokens Per Minute)</b> pada fungsi <b>peringkasan teks</b> dan <b>analisis gambar</b> adalah yang paling mungkin tercapai lebih dulu. Hal ini dapat menyebabkan beberapa pengguna mengalami sedikit keterlambatan atau pesan error sementara.</li>
+            </ul>
+
+            <h3>Strategi Mitigasi dan Rencana Skalabilitas</h3>
+            <p>Untuk mengatasi limitasi ini dan memastikan pengalaman pengguna yang baik, berikut adalah rencana pengembangan yang dapat diimplementasikan:</p>
+            <ol class="list-decimal pl-5">
+                <li><b>Pesan Status di Frontend (Jangka Pendek):</b> Menambahkan pesan antrian yang informatif di antarmuka pengguna, seperti <i>"Server sedang memproses permintaan lain, proses Anda akan segera dimulai..."</i>.</li>
+                <li><b>Implementasi Sistem Antrian di Backend (Jangka Menengah):</b> Membangun sistem antrian (misalnya menggunakan Redis atau RabbitMQ) di backend untuk mengelola permintaan ke Groq agar tidak melebihi <i>rate limit</i>.</li>
+                <li><b>Upgrade Paket API (Jangka Panjang):</b> Untuk rilis komersial, melakukan upgrade ke paket berbayar dari Groq untuk mendapatkan <i>rate limits</i> yang jauh lebih tinggi.</li>
+            </ol>
+        </div>
+
+        <!-- English Content -->
+        <div id="content-en" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md hidden">
+            <h3>Introduction</h3>
+            <p>This document outlines the technical limitations and scalability potential of the "Asisten Pintar" application. The performance and capacity of this app are highly dependent on the rate limits of the Groq API, which serves as the core engine for audio transcription, translation, image analysis, and intelligent summarization.</p>
+            <p class="mt-2">Understanding these limitations is crucial for planning the application's use on a larger scale and for identifying necessary mitigation strategies.</p>
+
+            <h3>Key Limitations (Based on Groq's Free Tier Rate Limits)</h3>
+            <p>Usage limits are calculated per minute. Here are the details based on the main functions within the application:</p>
+
+            <h4>1. Text Summarization Function (Model: Llama3-70B-8192)</h4>
+            <p>This model is used when the user presses the "Create Summary" button.</p>
+            <ul>
+                <li><b>Requests Per Minute (RPM): 30 requests/minute</b>
+                    <p class="text-sm text-slate-600"><b>Meaning:</b> The application can process up to 30 summary requests within one minute.</p>
+                </li>
+                <li><b>Tokens Per Minute (TPM): 18,000 tokens/minute</b>
+                    <p class="text-sm text-slate-600"><b>Meaning:</b> The total length of text (the combination of the submitted transcript and the generated summary) cannot exceed 18,000 tokens (approximately 13,500 words) per minute.</p>
+                    <p class="text-sm text-slate-600 mt-1"><b>Practical Implication:</b> This limit is one of the main <b>bottlenecks</b> of the application. Summarizing a very long transcript will consume a significant portion of this quota.</p>
+                </li>
+            </ul>
+
+            <h4>2. Image Analysis Function (Model: meta-llama/llama-4-maverick-17b-128e-instruct)</h4>
+            <p>This model is used when the application analyzes the content of uploaded screenshots or photos.</p>
+            <ul>
+                <li><b>Requests Per Minute (RPM): 30 requests/minute</b>
+                    <p class="text-sm text-slate-600"><b>Meaning:</b> The application can analyze up to 30 different images within one minute.</p>
+                </li>
+                <li><b>Tokens Per Minute (TPM): 6,000 tokens/minute</b>
+                    <p class="text-sm text-slate-600"><b>Meaning:</b> The total tokens used to process an image and generate a text description cannot exceed 6,000 tokens (approximately 4,500 words) per minute.</p>
+                    <p class="text-sm text-slate-600 mt-1"><b>Practical Implication:</b> With a lower token quota, the image analysis function is also a <b>significant bottleneck</b>, especially if many images are analyzed concurrently.</p>
+                </li>
+            </ul>
+
+            <h4>3. Text Translation Function (Model: Llama3-8B-8192)</h4>
+            <p>This function is used internally after audio transcription to translate text into Indonesian.</p>
+            <ul>
+                <li><b>Requests Per Minute (RPM): 30 requests/minute</b></li>
+                <li><b>Tokens Per Minute (TPM): 30,000 tokens/minute</b></li>
+                <li><p class="text-sm text-slate-600"><b>Note:</b> The quota for translation is very generous and is unlikely to be an issue.</p></li>
+            </ul>
+
+            <h4>4. Audio Transcription Function (Model: Whisper-Large-V3)</h4>
+            <p>This function is used after a user finishes recording audio.</p>
+            <ul>
+                <li><b>Requests Per Minute (RPM): 100 requests/minute</b></li>
+                <li><p class="text-sm text-slate-600"><b>Note:</b> The quota for audio transcription is very generous and will not be an issue.</p></li>
+            </ul>
+
+            <h3>Implications for Users</h3>
+            <ul>
+                <li><b>For a Single User:</b> An individual user is highly unlikely to hit these limits. The application will feel very fast and responsive.</li>
+                <li><b>For Concurrent Users (Demo/Production Scenario):</b> If the application is used by many people simultaneously, the <b>TPM (Tokens Per Minute)</b> rate limit for the <b>text summarization</b> and <b>image analysis</b> functions is the most likely to be reached first. This may cause some users to experience slight delays or temporary error messages.</li>
+            </ul>
+
+            <h3>Mitigation Strategies and Scalability Plan</h3>
+            <p>To address these limitations and ensure a good user experience, the following development plan can be implemented:</p>
+            <ol class="list-decimal pl-5">
+                <li><b>Frontend Status Messages (Short-Term):</b> Add informative queuing messages to the user interface, such as <i>"The server is processing other requests, your process will begin shortly..."</i>.</li>
+                <li><b>Backend Queuing System (Mid-Term):</b> Implement a queuing system (e.g., using Redis or RabbitMQ) on the backend to manage requests to the Groq API, ensuring rate limits are not exceeded.</li>
+                <li><b>API Plan Upgrade (Long-Term):</b> For a commercial release, upgrade to a paid Groq API plan to obtain much higher rate limits.</li>
+            </ol>
+        </div>
+        
+        <!-- [BARU] Bagian Referensi -->
+        <div class="text-center mt-10 border-t border-slate-200 pt-6">
+            <h3 id="reference-title" class="text-xl font-semibold text-slate-800 mb-2">Referensi</h3>
+            <p id="reference-text" class="text-slate-600 mb-3">Semua batasan teknis didasarkan pada dokumentasi resmi dari Groq. Untuk informasi lebih lanjut, silakan kunjungi:</p>
+            <a href="https://console.groq.com/docs/rate-limits" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors">
+                Groq API Rate Limits Documentation
+            </a>
+        </div>
+        
+        <footer class="text-center mt-8 text-sm text-slate-500">
+            <p id="footer-text">Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.</p>
+        </footer>
+    </div>
+
+    <script>
+        const btnId = document.getElementById('btn-id');
+        const btnEn = document.getElementById('btn-en');
+        const contentId = document.getElementById('content-id');
+        const contentEn = document.getElementById('content-en');
+        const mainTitle = document.getElementById('main-title');
+        const mainSubtitle = document.getElementById('main-subtitle');
+        // [BARU] Menambahkan referensi ke elemen baru
+        const referenceTitle = document.getElementById('reference-title');
+        const referenceText = document.getElementById('reference-text');
+        const footerText = document.getElementById('footer-text');
+
+        btnId.addEventListener('click', () => {
+            contentId.classList.remove('hidden');
+            contentEn.classList.add('hidden');
+            btnId.classList.add('active');
+            btnEn.classList.remove('active');
+            document.documentElement.lang = 'id';
+            // Mengubah teks ke Bahasa Indonesia
+            mainTitle.textContent = 'Limitasi dan Skalabilitas';
+            mainSubtitle.textContent = 'Asisten Pintar App';
+            referenceTitle.textContent = 'Referensi';
+            referenceText.textContent = 'Semua batasan teknis didasarkan pada dokumentasi resmi dari Groq. Untuk informasi lebih lanjut, silakan kunjungi:';
+            footerText.textContent = 'Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.';
+        });
+
+        btnEn.addEventListener('click', () => {
+            contentEn.classList.remove('hidden');
+            contentId.classList.add('hidden');
+            btnEn.classList.add('active');
+            btnId.classList.remove('active');
+            document.documentElement.lang = 'en';
+            // Mengubah teks ke Bahasa Inggris
+            mainTitle.textContent = 'Limitations and Scalability';
+            // [DIUBAH] Nama aplikasi tetap "Asisten Pintar"
+            mainSubtitle.textContent = 'Asisten Pintar App';
+            referenceTitle.textContent = 'Reference';
+            referenceText.textContent = 'All technical limitations are based on the official documentation from Groq. For more information, please visit:';
+            footerText.textContent = 'Documentation for Asisten Pintar - Meta-Hacktiv8 Hackathon 2025.';
+        });
+    </script>
+</body>
+</html>
