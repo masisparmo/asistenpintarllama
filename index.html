@@ -132,8 +132,14 @@
             <div id="logContainer" class="bg-slate-800 text-white font-mono text-xs p-4 rounded-lg h-40 overflow-y-auto"></div>
         </div>
         
-        <footer class="text-center mt-8 text-sm text-slate-500">
-            <p>Dibuat untuk Hackathon Meta-Hacktiv8 2025 oleh masisparmo.</p>
+        <!-- [DIUBAH] Footer dengan Link -->
+        <footer class="text-center mt-8 text-sm text-slate-500 space-y-2">
+            <div class="flex justify-center items-center space-x-4">
+                <a href="https://asistenpintarku.isparmo.com/terms.html" target="_blank" class="hover:underline">Ketentuan Layanan</a>
+                <span class="text-slate-400">|</span>
+                <a href="https://asistenpintarku.isparmo.com/privacy.html" target="_blank" class="hover:underline">Kebijakan Privasi</a>
+            </div>
+            <p>Dibuat oleh <a href="https://github.com/masisparmo" target="_blank" class="font-semibold text-indigo-600 hover:underline">masisparmo</a> untuk Hackathon Meta-Hacktiv8 2025.</p>
         </footer>
     </div>
 
@@ -154,8 +160,8 @@
     </div>
 
     <script type="module">
-        // --- [PENTING] Ganti URL ini dengan URL Google Cloud Run Anda setelah deploy ---
-        const BACKEND_URL = 'https://asia-southeast1-asistenpintarllama-bf232.cloudfunctions.net/api'; // Ganti dengan URL Anda
+        // --- [PENTING] Ganti URL ini dengan URL Firebase Function Anda ---
+        const BACKEND_URL = 'https://asia-southeast1-asistenpintarllama-bf232.cloudfunctions.net/api';
 
         // --- DOM Elements (tidak berubah) ---
         const recordButton = document.getElementById('recordButton');
