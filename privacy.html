@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kebijakan Privasi - Asisten Pintar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .content-section h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .content-section p, .content-section li {
+            line-height: 1.75;
+        }
+        .content-section ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .lang-btn.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto max-w-4xl p-4 sm:p-8">
+        <header class="text-center mb-8">
+            <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-slate-900">Kebijakan Privasi</h1>
+            <p id="main-subtitle" class="text-slate-600 mt-2">Asisten Pintar App</p>
+        </header>
+
+        <!-- Language Switcher -->
+        <div class="flex justify-center mb-8 bg-slate-200 p-1 rounded-lg">
+            <button id="btn-id" class="lang-btn active w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">Bahasa Indonesia</button>
+            <button id="btn-en" class="lang-btn w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">English</button>
+        </div>
+
+        <!-- Indonesian Content -->
+        <div id="content-id" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md">
+            <p><strong>Tanggal Efektif:</strong> 12 Agustus 2025</p>
+
+            <h3>Pendahuluan</h3>
+            <p>Selamat datang di Asisten Pintar ("Aplikasi"). Kami berkomitmen untuk melindungi privasi data Anda. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi informasi Anda saat Anda menggunakan Aplikasi kami. Dengan menggunakan Aplikasi ini, Anda menyetujui praktik yang dijelaskan dalam kebijakan ini.</p>
+
+            <h3>Informasi yang Kami Proses</h3>
+            <p>Aplikasi ini dirancang untuk memproses informasi yang Anda berikan secara langsung untuk tujuan fungsionalitas inti. Kami tidak menyimpan data Anda secara permanen di server kami. Informasi yang kami proses meliputi:</p>
+            <ul>
+                <li><strong>Rekaman Suara:</strong> Saat Anda menggunakan fitur rekam, data audio Anda dikirim ke server kami untuk diproses menjadi teks (transkripsi) melalui API Groq.</li>
+                <li><strong>Gambar dan Screenshot:</strong> Gambar yang Anda unggah atau ambil diproses untuk mengekstrak teks atau mendeskripsikan konten visual melalui API Groq.</li>
+                <li><strong>Catatan Teks:</strong> Teks yang Anda ketik secara manual digabungkan dengan data lain untuk menghasilkan ringkasan.</li>
+            </ul>
+
+            <h3>Bagaimana Kami Menggunakan Informasi Anda</h3>
+            <p>Informasi yang Anda berikan hanya digunakan untuk tujuan berikut:</p>
+            <ul>
+                <li>Untuk menyediakan fungsionalitas inti Aplikasi, seperti mentranskripsi audio, menganalisis gambar, dan membuat ringkasan.</li>
+                <li>Untuk mengirimkan data Anda ke API pihak ketiga (Groq) untuk pemrosesan AI. Kami tidak membagikan data Anda dengan pihak lain untuk tujuan pemasaran atau iklan.</li>
+            </ul>
+
+            <h3>Penyimpanan dan Keamanan Data</h3>
+            <p>Kami mengambil privasi dan keamanan data dengan serius. Berikut adalah pendekatan kami:</p>
+            <ul>
+                <li><strong>Tanpa Penyimpanan Permanen:</strong> Data audio, gambar, dan teks Anda diproses secara *ephemeral* (sementara). Data tersebut dikirim ke server kami, diproses, dan hasilnya dikembalikan kepada Anda. Kami tidak menyimpan salinan data input Anda di server kami setelah proses selesai.</li>
+                <li><strong>Transmisi Aman:</strong> Komunikasi antara aplikasi frontend dan server backend kami dienkripsi menggunakan protokol HTTPS standar industri.</li>
+            </ul>
+
+            <h3>Berbagi Informasi</h3>
+            <p>Kami tidak menjual, menyewakan, atau membagikan informasi pribadi Anda kepada pihak ketiga untuk tujuan komersial mereka. Satu-satunya pembagian data terjadi saat kami mengirimkan data input Anda (audio/gambar) ke Groq API untuk pemrosesan, yang terikat oleh kebijakan privasi mereka sendiri.</p>
+
+            <h3>Hak Anda</h3>
+            <p>Karena kami tidak menyimpan data Anda, Anda memiliki kendali penuh atas informasi Anda. Laporan akhir (ringkasan, transkrip, dll.) hanya disimpan di perangkat lokal Anda setelah Anda mengunduhnya.</p>
+
+            <h3>Perubahan pada Kebijakan Ini</h3>
+            <p>Kami dapat memperbarui Kebijakan Privasi ini dari waktu ke waktu. Versi terbaru akan selalu tersedia di halaman ini. Kami mendorong Anda untuk meninjau kebijakan ini secara berkala.</p>
+
+            <h3>Hubungi Kami</h3>
+            <p>Jika Anda memiliki pertanyaan tentang Kebijakan Privasi ini, silakan hubungi kami melalui email di <a href="mailto:support@isparmo.com" class="text-indigo-600 hover:text-indigo-800">support@isparmo.com</a>.</p>
+        </div>
+
+        <!-- English Content -->
+        <div id="content-en" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md hidden">
+            <p><strong>Effective Date:</strong> August 12, 2025</p>
+
+            <h3>Introduction</h3>
+            <p>Welcome to Asisten Pintar ("the App"). We are committed to protecting your data privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our App. By using the App, you agree to the practices described in this policy.</p>
+
+            <h3>Information We Process</h3>
+            <p>The App is designed to process information you provide directly for its core functionality. We do not permanently store your data on our servers. The information we process includes:</p>
+            <ul>
+                <li><strong>Voice Recordings:</strong> When you use the recording feature, your audio data is sent to our server to be processed into text (transcription) via the Groq API.</li>
+                <li><strong>Images and Screenshots:</strong> Images you upload or capture are processed to extract text or describe visual content via the Groq API.</li>
+                <li><strong>Text Notes:</strong> Text you type manually is combined with other data to generate summaries.</li>
+            </ul>
+
+            <h3>How We Use Your Information</h3>
+            <p>The information you provide is used solely for the following purposes:</p>
+            <ul>
+                <li>To provide the core functionalities of the App, such as transcribing audio, analyzing images, and creating summaries.</li>
+                <li>To send your data to a third-party API (Groq) for AI processing. We do not share your data with any other parties for marketing or advertising purposes.</li>
+            </ul>
+
+            <h3>Data Storage and Security</h3>
+            <p>We take data privacy and security seriously. Here is our approach:</p>
+            <ul>
+                <li><strong>No Permanent Storage:</strong> Your audio, image, and text data are processed ephemerally. The data is sent to our server, processed, and the result is returned to you. We do not store a copy of your input data on our servers after the process is complete.</li>
+                <li><strong>Secure Transmission:</strong> Communication between the frontend application and our backend server is encrypted using industry-standard HTTPS protocol.</li>
+            </ul>
+
+            <h3>Information Sharing</h3>
+            <p>We do not sell, rent, or share your personal information with third parties for their commercial purposes. The only data sharing occurs when we send your input data (audio/image) to the Groq API for processing, which is bound by its own privacy policy.</p>
+
+            <h3>Your Rights</h3>
+            <p>Since we do not store your data, you have full control over your information. The final reports (summaries, transcripts, etc.) are only saved on your local device after you download them.</p>
+
+            <h3>Changes to This Policy</h3>
+            <p>We may update this Privacy Policy from time to time. The latest version will always be available on this page. We encourage you to review this policy periodically.</p>
+
+            <h3>Contact Us</h3>
+            <p>If you have any questions about this Privacy Policy, please contact us via email at <a href="mailto:support@isparmo.com" class="text-indigo-600 hover:text-indigo-800">support@isparmo.com</a>.</p>
+        </div>
+        
+        <footer class="text-center mt-8 text-sm text-slate-500">
+            <p id="footer-text">Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.</p>
+        </footer>
+    </div>
+
+    <script>
+        const btnId = document.getElementById('btn-id');
+        const btnEn = document.getElementById('btn-en');
+        const contentId = document.getElementById('content-id');
+        const contentEn = document.getElementById('content-en');
+        const mainTitle = document.getElementById('main-title');
+        const mainSubtitle = document.getElementById('main-subtitle');
+        const footerText = document.getElementById('footer-text');
+
+        btnId.addEventListener('click', () => {
+            contentId.classList.remove('hidden');
+            contentEn.classList.add('hidden');
+            btnId.classList.add('active');
+            btnEn.classList.remove('active');
+            document.documentElement.lang = 'id';
+            mainTitle.textContent = 'Kebijakan Privasi';
+            mainSubtitle.textContent = 'Asisten Pintar App';
+            footerText.textContent = 'Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.';
+        });
+
+        btnEn.addEventListener('click', () => {
+            contentEn.classList.remove('hidden');
+            contentId.classList.add('hidden');
+            btnEn.classList.add('active');
+            btnId.classList.remove('active');
+            document.documentElement.lang = 'en';
+            mainTitle.textContent = 'Privacy Policy';
+            mainSubtitle.textContent = 'Asisten Pintar App';
+            footerText.textContent = 'Documentation for Asisten Pintar - Meta-Hacktiv8 Hackathon 2025.';
+        });
+    </script>
+</body>
+</html>
