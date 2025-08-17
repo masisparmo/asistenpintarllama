@@ -361,21 +361,22 @@
         async function handleApiCall(url, options, context) {
             try {
                 const response = await fetch(url, options);
+                const responseText = await response.text(); // Baca body sekali saja
                 if (!response.ok) {
-                    let errorText;
+                    let errorJson;
                     try {
-                        const errorData = await response.json();
-                        errorText = errorData.error || JSON.stringify(errorData);
+                        errorJson = JSON.parse(responseText);
                     } catch (e) {
-                        errorText = await response.text();
+                        // Jika respons bukan JSON (misal, halaman error HTML)
+                        throw new Error(responseText);
                     }
-                    throw new Error(errorText);
+                    throw new Error(errorJson.error || JSON.stringify(errorJson));
                 }
-                return await response.json();
+                return JSON.parse(responseText);
             } catch (error) {
                 log(`${context} failed: ${error.message}`, 'ERROR');
                 statusSpan.textContent = `Gagal ${context}.`;
-                throw error; // Melempar error lagi agar bisa ditangani di pemanggil
+                throw error;
             }
         }
 
