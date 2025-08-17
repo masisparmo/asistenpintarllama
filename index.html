@@ -224,6 +224,8 @@
         let currentCameraCallback = null;
         let recordedAudioBlob = null;
 
+        // --- [DIPERBAIKI] Script lengkap dikembalikan ---
+
         function saveState() {
             const state = {
                 fullTranscript,
@@ -310,6 +312,24 @@
             }
         }
         
+        function startTimer(mimeType) {
+            recordingIndicator.classList.remove('hidden');
+            let seconds = 0;
+            const bytesPerSecond = (mimeType && mimeType.includes('opus')) ? 16000 : 16000 * 2;
+            timerInterval = setInterval(() => {
+                seconds++;
+                const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                timerSpan.textContent = `${minutes}:${secs}`;
+                const estimatedMB = (seconds * bytesPerSecond / (1024 * 1024));
+                sizeEstimatorSpan.textContent = `${estimatedMB.toFixed(2)} MB`;
+
+                if (estimatedMB >= 24 && isRecording) {
+                    handleRecordClick();
+                }
+            }, 1000);
+        }
+
         async function handleRecordClick() {
             if (isRecording) {
                 if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
@@ -319,17 +339,21 @@
                 if (!activeStream) return;
                 isRecording = true;
                 audioChunks = [];
-                mediaRecorder = new MediaRecorder(activeStream, { mimeType: 'audio/webm; codecs=opus' });
+                const options = { mimeType: 'audio/webm; codecs=opus' };
+                mediaRecorder = new MediaRecorder(activeStream, options);
                 mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
                 mediaRecorder.onstop = () => {
                     isRecording = false;
+                    clearInterval(timerInterval);
+                    recordingIndicator.classList.add('hidden');
                     if (activeStream) activeStream.getTracks().forEach(track => track.stop());
-                    recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    recordedAudioBlob = new Blob(audioChunks, { type: options.mimeType });
                     recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
                     recordButton.classList.replace('bg-red-600', 'bg-blue-600');
                     if (recordedAudioBlob.size > 0) transcribeAudio(recordedAudioBlob);
                 };
                 mediaRecorder.start();
+                startTimer(options.mimeType);
                 recordButton.innerHTML = `<span>Berhenti Rekam</span>`;
                 recordButton.classList.replace('bg-blue-600', 'bg-red-600');
             }
@@ -354,6 +378,68 @@
             }
         }
         
+        async function handleImageUpload(event, type) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            
+            for (const file of files) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const newImage = { file, dataUrl: e.target.result, type, filename: file.name };
+                    if (type === 'documentation') {
+                        documentationImages.push(newImage);
+                        renderDocPhotos();
+                    } else {
+                        screenshotImages.push(newImage);
+                        renderScreenshotPhotos();
+                        analyzeScreenshot(file);
+                    }
+                    saveState();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function analyzeScreenshot(file) {
+            statusSpan.textContent = 'Menganalisis gambar...';
+            statusLoader.classList.remove('hidden');
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const response = await fetch(`${BACKEND_URL}/analyze-image`, { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('Image analysis failed');
+                const result = await response.json();
+                const generatedText = result.choices[0]?.message?.content || "Tidak dapat menganalisis gambar.";
+                updateTranscript(generatedText, "Gambar");
+                statusSpan.textContent = 'Analisis berhasil.';
+            } catch (error) {
+                log(error.message, 'ERROR');
+                statusSpan.textContent = 'Gagal menganalisis.';
+            } finally {
+                statusLoader.classList.add('hidden');
+            }
+        }
+
+        function renderDocPhotos() {
+            docPhotosPreview.innerHTML = '';
+            documentationImages.forEach(img => {
+                const imgEl = document.createElement('img');
+                imgEl.src = img.dataUrl;
+                imgEl.className = 'w-full h-16 object-cover rounded-md';
+                docPhotosPreview.appendChild(imgEl);
+            });
+        }
+
+        function renderScreenshotPhotos() {
+            screenshotPhotosPreview.innerHTML = '';
+            screenshotImages.forEach(img => {
+                const imgEl = document.createElement('img');
+                imgEl.src = img.dataUrl;
+                imgEl.className = 'w-full h-16 object-cover rounded-md';
+                screenshotPhotosPreview.appendChild(imgEl);
+            });
+        }
+
         function handleManualNote() {
             const note = manualNote.value.trim();
             if (note) {
@@ -385,6 +471,31 @@
         function closeCamera() {
             if (cameraStream.srcObject) cameraStream.srcObject.getTracks().forEach(track => track.stop());
             cameraModal.classList.replace('flex', 'hidden');
+        }
+
+        async function captureScreenArea(type) {
+            if (!navigator.mediaDevices.getDisplayMedia) {
+                alert('Fitur ini tidak didukung di browser atau perangkat Anda.');
+                return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                const videoTrack = stream.getVideoTracks()[0];
+                const imageCapture = new ImageCapture(videoTrack);
+                const frame = await imageCapture.grabFrame();
+                videoTrack.stop();
+
+                const canvas = document.createElement('canvas');
+                canvas.width = frame.width;
+                canvas.height = frame.height;
+                canvas.getContext('2d').drawImage(frame, 0, 0);
+                canvas.toBlob(blob => {
+                    const file = new File([blob], `screenshot-${Date.now()}.jpg`, { type: 'image/jpeg' });
+                    handleImageUpload({ target: { files: [file] } }, type);
+                }, 'image/jpeg');
+            } catch (err) {
+                log(`Screen capture error: ${err.message}`, 'ERROR');
+            }
         }
 
         async function requestInitialPermissions() {
@@ -543,8 +654,18 @@
         // Event Listeners
         recordButton.addEventListener('click', handleRecordClick);
         addNoteButton.addEventListener('click', handleManualNote);
-        takeDocPhotoButton.addEventListener('click', () => openCamera(blob => { /* handle image blob */ }));
-        takeScreenshotButton.addEventListener('click', () => openCamera(blob => { /* handle image blob */ }));
+        takeDocPhotoButton.addEventListener('click', () => openCamera(blob => {
+            const file = new File([blob], `doc-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+            handleImageUpload({ target: { files: [file] } }, 'documentation');
+        }));
+        takeScreenshotButton.addEventListener('click', () => openCamera(blob => {
+            const file = new File([blob], `ss-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+            handleImageUpload({ target: { files: [file] } }, 'screenshot');
+        }));
+        uploadDocPhoto.addEventListener('change', (e) => handleImageUpload(e, 'documentation'));
+        uploadScreenshot.addEventListener('change', (e) => handleImageUpload(e, 'screenshot'));
+        takeDocScreenshotAreaButton.addEventListener('click', () => captureScreenArea('documentation'));
+        takeNoteScreenshotAreaButton.addEventListener('click', () => captureScreenArea('screenshot'));
         captureButton.addEventListener('click', captureImage);
         downloadTxtBtn.addEventListener('click', downloadTxt);
         downloadMdBtn.addEventListener('click', downloadMd);
@@ -554,16 +675,22 @@
         summarizeButton.addEventListener('click', summarizeTranscript);
         toggleLogButton.addEventListener('click', () => { logWrapper.classList.toggle('hidden'); });
         grantPermissionButton.addEventListener('click', requestInitialPermissions);
+        copyLogButton.addEventListener('click', () => {
+            navigator.clipboard.writeText(logContainer.innerText);
+            copyLogButton.textContent = 'Copied!';
+            setTimeout(() => { copyLogButton.textContent = 'Copy Log'; }, 2000);
+        });
 
         window.addEventListener('load', async () => {
             log('Asisten Pintar initialized.');
             loadState();
 
-            // [DIPERBAIKI] Deteksi mobile untuk menyembunyikan opsi speaker
             if (!navigator.mediaDevices.getDisplayMedia) {
-                log('Mobile device or unsupported browser. Hiding speaker audio options.', 'INFO');
+                log('Mobile device or unsupported browser. Hiding speaker/screenshot options.', 'INFO');
                 document.getElementById('audioSourceSpeakerLabel').classList.add('hidden');
                 document.getElementById('audioSourceBothLabel').classList.add('hidden');
+                takeDocScreenshotAreaButton.classList.add('hidden');
+                takeNoteScreenshotAreaButton.classList.add('hidden');
             }
 
             try {
@@ -594,4 +721,4 @@
 
     </script>
 </body>
-</html>
+</html
