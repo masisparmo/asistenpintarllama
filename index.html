@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asisten Pintar - Asisten Pencatat Pintar Powered by Llama Ai</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn-tailwindcss.vercel.app/"></script>
     <!-- Library jspdf dan jszip sudah tidak diperlukan di sini -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,6 @@
 <body class="bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen p-4">
     <div class="container mx-auto p-6 md:p-8 max-w-6xl bg-white rounded-2xl shadow-2xl border border-slate-200">
         
-        <!-- [DIUBAH] Header dengan Link Navigasi -->
         <header class="text-center mb-8 relative">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Asisten Pintar</h1>
             <p class="text-slate-600 mt-2">Asisten Pencatat Pintar Powered by Llama Ai</p>
@@ -129,13 +128,21 @@
             </div>
         </div>
         
-        <!-- Log (Tidak Berubah) -->
+        <!-- [DIUBAH] Log disembunyikan di balik tombol, teks judul dihilangkan -->
         <div class="mt-8">
-            <div class="flex justify-between items-center mb-2">
-                <h2 class="text-lg font-semibold text-slate-700">Log Aktivitas</h2>
-                <button id="copyLogButton" class="bg-slate-200 text-slate-600 text-xs font-semibold py-1 px-3 rounded-md hover:bg-slate-300">Copy</button>
+            <div class="flex justify-end items-center mb-2 h-9"> <!-- Memberi tinggi tetap agar layout tidak bergeser -->
+                <button id="toggleLogButton" class="p-2 rounded-full hover:bg-slate-200 transition-colors" title="Tampilkan/Sembunyikan Log Developer">
+                    <!-- Terminal Icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="text-slate-600" viewBox="0 0 16 16">
+                        <path d="M6 9a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3A.5.5 0 0 1 6 9zM3.854 4.146a.5.5 0 1 0-.708.708L4.793 6.5 3.146 8.146a.5.5 0 1 0 .708.708l2-2a.5.5 0 0 0 0-.708l-2-2z"/>
+                        <path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12z"/>
+                    </svg>
+                </button>
             </div>
-            <div id="logContainer" class="bg-slate-800 text-white font-mono text-xs p-4 rounded-lg h-40 overflow-y-auto"></div>
+            <div id="logWrapper" class="hidden">
+                 <div id="logContainer" class="bg-slate-800 text-white font-mono text-xs p-4 rounded-lg h-40 overflow-y-auto mb-2"></div>
+                 <button id="copyLogButton" class="bg-slate-200 text-slate-600 text-xs font-semibold py-1 px-3 rounded-md hover:bg-slate-300">Copy Log</button>
+            </div>
         </div>
         
         <footer class="text-center mt-8 text-sm text-slate-500 space-y-2">
@@ -168,7 +175,7 @@
         // --- [PENTING] Ganti URL ini dengan URL Firebase Function Anda ---
         const BACKEND_URL = 'https://asia-southeast1-asistenpintarllama-bf232.cloudfunctions.net/api';
 
-        // --- DOM Elements (tidak berubah) ---
+        // --- DOM Elements ---
         const recordButton = document.getElementById('recordButton');
         const imageUpload = document.getElementById('uploadScreenshot');
         const manualNote = document.getElementById('manualNote');
@@ -204,6 +211,9 @@
         const permissionError = document.getElementById('permission-error');
         const takeDocScreenshotAreaButton = document.getElementById('takeDocScreenshotAreaButton');
         const takeNoteScreenshotAreaButton = document.getElementById('takeNoteScreenshotAreaButton');
+        // [BARU] Referensi untuk Log Toggle
+        const toggleLogButton = document.getElementById('toggleLogButton');
+        const logWrapper = document.getElementById('logWrapper');
         
         // --- App State (tidak berubah) ---
         let isRecording = false, mediaRecorder, fullTranscript = "", summaryText = "", activeStream, audioContext, audioChunks = [], timerInterval = null;
@@ -267,7 +277,6 @@
             downloadAsFile(`${generateBaseFilename()}.md`, generateReportContent('md'), 'text/markdown;charset=utf-8;');
         }
         
-        // --- [DIUBAH] Fungsi Download PDF (memanggil backend) ---
         async function downloadPdf() {
             const button = downloadPdfBtn;
             const originalText = button.querySelector('span').textContent;
@@ -285,7 +294,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        reportContent: generateReportContent('md'), // Kirim format MD untuk diproses
+                        reportContent: generateReportContent('md'),
                         filename: filename
                     })
                 });
@@ -317,7 +326,6 @@
             }
         }
 
-        // --- [DIUBAH] Fungsi Download ZIP (memanggil backend) ---
         async function downloadPhotosAsZip() {
             const allImages = [...documentationImages, ...screenshotImages];
             if (allImages.length === 0) {
@@ -339,7 +347,6 @@
             const formData = new FormData();
             formData.append('zipFilename', zipFilename);
             allImages.forEach((img, index) => {
-                // Gunakan nama file asli jika ada, atau buat nama file baru
                 const filename = img.filename || generateImageFilename(img.type, index);
                 formData.append('files', img.file, filename);
                 formData.append('filenames', filename);
@@ -348,7 +355,7 @@
             try {
                 const response = await fetch(`${BACKEND_URL}/generate-zip`, {
                     method: 'POST',
-                    body: formData // Kirim sebagai FormData, bukan JSON
+                    body: formData
                 });
 
                 if (!response.ok) {
@@ -370,23 +377,9 @@
             }
         }
 
-        // Sisa script (event listeners, fungsi inti lainnya) tetap sama
-        // ... (tempelkan sisa kode JavaScript Anda dari file asli di sini) ...
-        // Pastikan untuk menyalin semua fungsi dari `handleRecordClick` hingga `window.addEventListener('load', ...)`
-        // Kode di bawah ini adalah placeholder, ganti dengan kode asli Anda
-        
         // --- SISA KODE DARI FILE ASLI ANDA ---
         // (Salin semua fungsi dari `updateTranscript` hingga akhir event listener `window.addEventListener('load', ...)`
         // dari file `index.html` Anda yang lama ke sini)
-        // Contoh fungsi yang harus disalin:
-        // updateTranscript, getAudioStream, handleRecordClick, startTimer, translateText,
-        // transcribeAudio, handleImageUpload, analyzeScreenshot, handleManualNote,
-        // openCamera, captureImage, closeCamera, captureScreenArea, renderDocPhotos,
-        // renderScreenshotPhotos, getMeetingInfo, generateImageFilename, markdownToHtml,
-        // summarizeTranscript, saveFormData, loadFormData, requestInitialPermissions,
-        // dan semua event listeners.
-        
-        // CATATAN: Kode di bawah ini adalah versi ringkas, pastikan Anda menyalin versi lengkapnya.
         function updateTranscript(newText, source) {
             if (transcriptEmpty) { transcriptOutput.innerHTML = ""; transcriptEmpty = false; }
             transcriptOutput.innerHTML += `<div class="mb-2 p-2 bg-slate-100 rounded"><strong>${source}:</strong> ${newText}</div>`;
@@ -397,7 +390,7 @@
             log('Summarization process started.');
             summarizeButton.disabled = true;
             summarizeLoader.classList.remove('hidden');
-            const combinedContent = `${generateReportContent('txt')}`; // Simplified
+            const combinedContent = `${generateReportContent('txt')}`;
             try {
                 const response = await fetch(`${BACKEND_URL}/summarize`, {
                     method: 'POST',
@@ -407,7 +400,7 @@
                 if (!response.ok) throw new Error('Summarization failed');
                 const result = await response.json();
                 summaryText = result.choices[0]?.message?.content;
-                summaryOutput.innerHTML = markdownToHtml(summaryText); // Anda perlu fungsi markdownToHtml
+                summaryOutput.innerHTML = markdownToHtml(summaryText);
                 saveOptions.classList.remove('hidden');
             } catch (error) {
                 log(error.message, 'ERROR');
@@ -416,7 +409,7 @@
                 summarizeLoader.classList.add('hidden');
             }
         }
-        function markdownToHtml(markdown) { return markdown.replace(/\n/g, '<br>'); } // versi sangat sederhana
+        function markdownToHtml(markdown) { return markdown.replace(/\n/g, '<br>'); }
         
         // Event Listeners
         downloadTxtBtn.addEventListener('click', downloadTxt);
@@ -425,7 +418,11 @@
         downloadAudioBtn.addEventListener('click', downloadAudio);
         downloadPhotosBtn.addEventListener('click', downloadPhotosAsZip);
         summarizeButton.addEventListener('click', summarizeTranscript);
-        // ... tambahkan sisa event listener Anda
+        
+        // [BARU] Event listener untuk tombol log
+        toggleLogButton.addEventListener('click', () => {
+            logWrapper.classList.toggle('hidden');
+        });
 
     </script>
 </body>
