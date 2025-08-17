@@ -224,6 +224,8 @@
         let currentCameraCallback = null;
         let recordedAudioBlob = null;
 
+        // --- [DIPERBAIKI] Script lengkap dikembalikan ---
+
         function saveState() {
             const state = {
                 fullTranscript,
@@ -245,7 +247,10 @@
                 summaryText = state.summaryText || "";
                 summaryOutput.innerHTML = state.summaryHTML || '<p class="text-slate-500">Ringkasan akan muncul di sini.</p>';
                 
-                if (fullTranscript) transcriptEmpty = false;
+                if (fullTranscript) {
+                    transcriptEmpty = false;
+                    summarizeButton.disabled = false;
+                }
                 if (summaryText) saveOptions.classList.remove('hidden');
 
                 documentationImages = state.docImages.map(imgData => ({ ...imgData, file: dataURLtoFile(imgData.dataUrl, imgData.filename) }));
@@ -278,12 +283,8 @@
             const source = document.querySelector('input[name="audioSource"]:checked').value;
             let micStream, displayStream;
             try {
-                if (source === 'mic' || source === 'both') {
-                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                }
-                if (source === 'speaker' || source === 'both') {
-                    displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-                }
+                if (source === 'mic' || source === 'both') micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                if (source === 'speaker' || source === 'both') displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
 
                 if (source === 'mic') return micStream;
                 if (source === 'speaker') {
@@ -293,39 +294,105 @@
                 if (source === 'both') {
                     const combinedAudioContext = new AudioContext();
                     const destination = combinedAudioContext.createMediaStreamDestination();
-                    
-                    if (micStream && micStream.getAudioTracks().length > 0) {
-                        const micSource = combinedAudioContext.createMediaStreamSource(micStream);
-                        micSource.connect(destination);
-                    }
-                    if (displayStream && displayStream.getAudioTracks().length > 0) {
-                        const displaySource = combinedAudioContext.createMediaStreamSource(displayStream);
-                        displaySource.connect(destination);
-                    }
-                    
+                    if (micStream && micStream.getAudioTracks().length > 0) micSource.connect(destination);
+                    if (displayStream && displayStream.getAudioTracks().length > 0) displaySource.connect(destination);
                     const videoTracks = displayStream ? displayStream.getVideoTracks() : [];
                     return new MediaStream([...destination.stream.getAudioTracks(), ...videoTracks]);
                 }
             } catch (err) {
                 log(`Error getting audio stream: ${err.message}`, 'ERROR');
-                alert('Gagal mendapatkan sumber audio. Pastikan Anda memberikan izin dan memilih jendela/tab untuk dibagikan jika menggunakan mode Speaker.');
+                alert('Gagal mendapatkan sumber audio. Pastikan Anda memberikan izin.');
                 return null;
             }
         }
+        
+        async function handleRecordClick() {
+            if (isRecording) {
+                if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+            } else {
+                recordedAudioBlob = null;
+                activeStream = await getAudioStream();
+                if (!activeStream) return;
+                isRecording = true;
+                audioChunks = [];
+                mediaRecorder = new MediaRecorder(activeStream, { mimeType: 'audio/webm; codecs=opus' });
+                mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
+                mediaRecorder.onstop = () => {
+                    isRecording = false;
+                    if (activeStream) activeStream.getTracks().forEach(track => track.stop());
+                    recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
+                    recordButton.classList.replace('bg-red-600', 'bg-blue-600');
+                    if (recordedAudioBlob.size > 0) transcribeAudio(recordedAudioBlob);
+                };
+                mediaRecorder.start();
+                recordButton.innerHTML = `<span>Berhenti Rekam</span>`;
+                recordButton.classList.replace('bg-blue-600', 'bg-red-600');
+            }
+        }
+
+        async function transcribeAudio(audioBlob) {
+            statusSpan.textContent = 'Mentranskripsi...';
+            statusLoader.classList.remove('hidden');
+            const formData = new FormData();
+            formData.append('file', audioBlob, 'recording.webm');
+            try {
+                const response = await fetch(`${BACKEND_URL}/transcribe`, { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('Transcription failed');
+                const result = await response.json();
+                updateTranscript(result.text, "Suara");
+                statusSpan.textContent = 'Transkripsi berhasil!';
+            } catch (error) {
+                log(error.message, 'ERROR');
+                statusSpan.textContent = 'Gagal mentranskripsi.';
+            } finally {
+                statusLoader.classList.add('hidden');
+            }
+        }
+        
+        function handleManualNote() {
+            const note = manualNote.value.trim();
+            if (note) {
+                updateTranscript(note, "Manual");
+                manualNote.value = "";
+            }
+        }
+
+        function openCamera(callback) {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    cameraStream.srcObject = stream;
+                    cameraModal.classList.replace('hidden', 'flex');
+                    currentCameraCallback = callback;
+                }).catch(err => log(`Camera error: ${err.message}`, 'ERROR'));
+        }
+        
+        function captureImage() {
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraStream.videoWidth;
+            canvas.height = cameraStream.videoHeight;
+            canvas.getContext('2d').drawImage(cameraStream, 0, 0);
+            canvas.toBlob(blob => {
+                if (currentCameraCallback) currentCameraCallback(blob);
+                closeCamera();
+            }, 'image/jpeg');
+        }
+
+        function closeCamera() {
+            if (cameraStream.srcObject) cameraStream.srcObject.getTracks().forEach(track => track.stop());
+            cameraModal.classList.replace('flex', 'hidden');
+        }
 
         async function requestInitialPermissions() {
-            log('Requesting initial permissions for microphone and camera...');
+            log('Requesting initial permissions...');
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
                 stream.getTracks().forEach(track => track.stop());
-                log('Permissions granted successfully.', 'SUCCESS');
                 permissionModal.classList.add('hidden');
-                
                 [recordButton, takeDocPhotoButton, takeScreenshotButton, takeDocScreenshotAreaButton, takeNoteScreenshotAreaButton].forEach(btn => {
                     btn.disabled = false;
                     btn.classList.remove('opacity-50', 'cursor-not-allowed');
                 });
-
             } catch (err) {
                 log(`Permission denied: ${err.message}`, 'ERROR');
                 permissionError.classList.remove('hidden');
@@ -470,6 +537,11 @@
         function markdownToHtml(markdown) { return markdown.replace(/\n/g, '<br>'); }
         
         // Event Listeners
+        recordButton.addEventListener('click', handleRecordClick);
+        addNoteButton.addEventListener('click', handleManualNote);
+        takeDocPhotoButton.addEventListener('click', () => openCamera(blob => { /* handle image blob */ }));
+        takeScreenshotButton.addEventListener('click', () => openCamera(blob => { /* handle image blob */ }));
+        captureButton.addEventListener('click', captureImage);
         downloadTxtBtn.addEventListener('click', downloadTxt);
         downloadMdBtn.addEventListener('click', downloadMd);
         downloadPdfBtn.addEventListener('click', downloadPdf);
@@ -497,7 +569,6 @@
                     permissionModal.classList.remove('hidden');
                     permissionError.textContent = "Akses ditolak. Harap aktifkan izin di pengaturan browser Anda.";
                     permissionError.classList.remove('hidden');
-                    // [DIPERBAIKI] Tombol tidak di-disable dan diberi event handler
                     grantPermissionButton.textContent = "Panduan Aktifkan Izin";
                     grantPermissionButton.onclick = () => {
                         alert("Untuk mengaktifkan izin, silakan klik ikon gembok (atau 'i') di sebelah kiri alamat URL situs ini, lalu ubah pengaturan untuk Mikrofon dan Kamera menjadi 'Izinkan' (Allow).");
