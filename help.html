@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bantuan & F.A.Q - Asisten Pintar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .content-section h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .content-section p, .content-section li {
+            line-height: 1.75;
+        }
+        .content-section ol, .content-section ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .lang-btn.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .faq-question {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto max-w-4xl p-4 sm:p-8">
+        <header class="text-center mb-8">
+            <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-slate-900">Pusat Bantuan</h1>
+            <p id="main-subtitle" class="text-slate-600 mt-2">Asisten Pintar App</p>
+        </header>
+
+        <!-- Language Switcher -->
+        <div class="flex justify-center mb-8 bg-slate-200 p-1 rounded-lg">
+            <button id="btn-id" class="lang-btn active w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">Bahasa Indonesia</button>
+            <button id="btn-en" class="lang-btn w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">English</button>
+        </div>
+
+        <!-- Indonesian Content -->
+        <div id="content-id" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md">
+            <h3>Cara Detail Penggunaan Aplikasi</h3>
+            <ol class="list-decimal space-y-4">
+                <li>
+                    <strong>Isi Informasi Acara:</strong> Mulailah dengan mengisi detail acara seperti Nama Acara, Tema, Pembicara, dan lainnya. Informasi ini akan digunakan untuk memberi konteks pada ringkasan AI.
+                </li>
+                <li>
+                    <strong>Kumpulkan Catatan:</strong> Anda bisa mengumpulkan catatan dari berbagai sumber:
+                    <ul class="list-disc mt-2">
+                        <li>Klik <b>"Mulai Rekam Suara"</b> untuk mentranskripsi percakapan secara langsung.</li>
+                        <li>Gunakan tombol <b>"Ambil Foto"</b> atau <b>"Ambil Screenshot"</b> untuk menangkap informasi visual.</li>
+                        <li>Ketik catatan penting di kolom <b>catatan manual</b> dan klik "Tambah Catatan".</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Tinjau Transkrip Gabungan:</strong> Semua input Anda (suara, gambar, teks) akan muncul secara real-time di kolom "Gabungan Transkrip".
+                </li>
+                <li>
+                    <strong>Buat Ringkasan:</strong> Setelah semua informasi terkumpul, klik tombol <b>"Buat Ringkasan"</b>. AI akan menganalisis semua data dan membuat notulensi yang terstruktur di bagian "Hasil Ringkasan".
+                </li>
+                 <li>
+                    <strong>Simpan & Ekspor:</strong> Gunakan tombol-tombol di bagian "Simpan Laporan" untuk mengunduh hasil kerja Anda dalam format yang Anda inginkan (PDF, TXT, MD, Audio, atau ZIP berisi foto).
+                </li>
+            </ol>
+
+            <h3>Frequently Asked Questions (F.A.Q)</h3>
+            <div class="space-y-4">
+                <div>
+                    <p class="faq-question">1. Apakah data saya aman dan disimpan di server?</p>
+                    <p>Privasi Anda adalah prioritas kami. Kami tidak menyimpan data input Anda (audio, gambar) secara permanen. Data hanya diproses sementara untuk menghasilkan output, lalu dihapus. Lihat <a href="privacy.html" class="text-indigo-600 hover:underline">Kebijakan Privasi</a> kami untuk detailnya.</p>
+                </div>
+                <div>
+                    <p class="faq-question">2. Format audio apa yang didukung?</p>
+                    <p>Aplikasi ini merekam audio dalam format WebM dengan codec Opus, yang efisien dan didukung secara luas oleh browser modern. Saat ini, kami belum mendukung unggah file audio eksternal.</p>
+                </div>
+                <div>
+                    <p class="faq-question">3. Mengapa hasil transkripsi terkadang tidak akurat?</p>
+                    <p>Akurasi transkripsi bergantung pada beberapa faktor, seperti kualitas mikrofon, kebisingan latar belakang, dan kejelasan pembicara. Untuk hasil terbaik, gunakan di lingkungan yang tenang dengan suara yang jelas.</p>
+                </div>
+                <div>
+                    <p class="faq-question">4. Apakah ada batasan durasi rekaman?</p>
+                    <p>Secara teknis tidak ada batasan durasi, namun ada batasan ukuran file sekitar 24 MB untuk menjaga performa. Aplikasi akan memberi peringatan dan berhenti otomatis jika mendekati batas tersebut. Untuk sesi yang sangat panjang, disarankan untuk melakukan beberapa kali rekaman.</p>
+                </div>
+                <div>
+                    <p class="faq-question">5. Bisakah saya mengedit transkrip sebelum diringkas?</p>
+                    <p>Saat ini, fitur untuk mengedit transkrip secara langsung belum tersedia. Namun, Anda dapat menyalin teks dari kotak transkrip, memperbaikinya di editor teks lain, lalu menambahkannya kembali sebagai "Catatan Manual".</p>
+                </div>
+            </div>
+
+            <h3>Butuh Bantuan Lebih Lanjut?</h3>
+            <p>Jika Anda mengalami kesulitan teknis atau memiliki pertanyaan yang tidak terjawab di sini, jangan ragu untuk menghubungi tim support kami melalui email di <a href="mailto:support@isparmo.com" class="text-indigo-600 hover:underline">support@isparmo.com</a>.</p>
+        </div>
+
+        <!-- English Content -->
+        <div id="content-en" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md hidden">
+            <h3>Detailed Application Guide</h3>
+            <ol class="list-decimal space-y-4">
+                <li>
+                    <strong>Fill In Event Information:</strong> Start by filling in the event details such as Event Name, Theme, Speaker, etc. This information will be used to provide context for the AI summary.
+                </li>
+                <li>
+                    <strong>Collect Notes:</strong> You can gather notes from various sources:
+                    <ul class="list-disc mt-2">
+                        <li>Click <b>"Start Voice Recording"</b> to transcribe conversations live.</li>
+                        <li>Use the <b>"Take Photo"</b> or <b>"Take Screenshot"</b> buttons to capture visual information.</li>
+                        <li>Type important notes in the <b>manual note</b> field and click "Add Note".</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Review the Combined Transcript:</strong> All your inputs (voice, image, text) will appear in real-time in the "Combined Transcript" column.
+                </li>
+                <li>
+                    <strong>Create Summary:</strong> Once all information is collected, click the <b>"Create Summary"</b> button. The AI will analyze all the data and generate structured notes in the "Summary Result" section.
+                </li>
+                 <li>
+                    <strong>Save & Export:</strong> Use the buttons in the "Save Report" section to download your work in your desired format (PDF, TXT, MD, Audio, or a ZIP file of photos).
+                </li>
+            </ol>
+
+            <h3>Frequently Asked Questions (F.A.Q)</h3>
+            <div class="space-y-4">
+                <div>
+                    <p class="faq-question">1. Is my data secure and stored on the server?</p>
+                    <p>Your privacy is our priority. We do not permanently store your input data (audio, images). Data is only processed temporarily to generate the output and is then deleted. See our <a href="privacy.html" class="text-indigo-600 hover:underline">Privacy Policy</a> for details.</p>
+                </div>
+                <div>
+                    <p class="faq-question">2. What audio format is supported?</p>
+                    <p>The application records audio in WebM format with the Opus codec, which is efficient and widely supported by modern browsers. Currently, we do not support uploading external audio files.</p>
+                </div>
+                <div>
+                    <p class="faq-question">3. Why is the transcription sometimes inaccurate?</p>
+                    <p>Transcription accuracy depends on several factors, such as microphone quality, background noise, and speaker clarity. for best results, use the app in a quiet environment with clear speech.</p>
+                </div>
+                <div>
+                    <p class="faq-question">4. Is there a limit to the recording duration?</p>
+                    <p>Technically, there is no duration limit, but there is a file size limit of around 24 MB to maintain performance. The app will provide a warning and stop automatically if it approaches this limit. For very long sessions, it is recommended to make multiple recordings.</p>
+                </div>
+                <div>
+                    <p class="faq-question">5. Can I edit the transcript before summarizing?</p>
+                    <p>Currently, a feature to directly edit the transcript is not available. However, you can copy the text from the transcript box, correct it in another text editor, and then add it back as a "Manual Note".</p>
+                </div>
+            </div>
+
+            <h3>Need Further Assistance?</h3>
+            <p>If you encounter technical difficulties or have questions not answered here, please do not hesitate to contact our support team via email at <a href="mailto:support@isparmo.com" class="text-indigo-600 hover:underline">support@isparmo.com</a>.</p>
+        </div>
+        
+        <footer class="text-center mt-8 text-sm text-slate-500">
+            <p id="footer-text">Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.</p>
+        </footer>
+    </div>
+
+    <script>
+        const btnId = document.getElementById('btn-id');
+        const btnEn = document.getElementById('btn-en');
+        const contentId = document.getElementById('content-id');
+        const contentEn = document.getElementById('content-en');
+        const mainTitle = document.getElementById('main-title');
+        const mainSubtitle = document.getElementById('main-subtitle');
+        const footerText = document.getElementById('footer-text');
+
+        btnId.addEventListener('click', () => {
+            contentId.classList.remove('hidden');
+            contentEn.classList.add('hidden');
+            btnId.classList.add('active');
+            btnEn.classList.remove('active');
+            document.documentElement.lang = 'id';
+            mainTitle.textContent = 'Pusat Bantuan';
+            mainSubtitle.textContent = 'Asisten Pintar App';
+            footerText.textContent = 'Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.';
+        });
+
+        btnEn.addEventListener('click', () => {
+            contentEn.classList.remove('hidden');
+            contentId.classList.add('hidden');
+            btnEn.classList.add('active');
+            btnId.classList.remove('active');
+            document.documentElement.lang = 'en';
+            mainTitle.textContent = 'Help Center';
+            mainSubtitle.textContent = 'Asisten Pintar App';
+            footerText.textContent = 'Documentation for Asisten Pintar - Meta-Hacktiv8 Hackathon 2025.';
+        });
+    </script>
+</body>
+</html>
