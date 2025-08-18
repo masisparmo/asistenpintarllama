@@ -16,7 +16,7 @@
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        #cameraModal, #permissionModal { background-color: rgba(0,0,0,0.6); }
+        #cameraModal { background-color: rgba(0,0,0,0.6); }
         .btn-spinner { border-top-color: white !important; width: 20px !important; height: 20px !important; }
     </style>
 </head>
@@ -165,17 +165,10 @@
             <button id="captureButton" class="w-full mt-4 bg-red-600 text-white font-bold py-2 rounded-lg">Ambil Gambar</button>
         </div>
     </div>
-    <div id="permissionModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-        <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-sm mx-4">
-            <h2 class="text-2xl font-bold mb-4 text-slate-800">Izin Diperlukan</h2>
-            <p class="text-slate-600 mb-6">Asisten Pintar memerlukan izin untuk mengakses mikrofon dan kamera Anda.</p>
-            <button id="grantPermissionButton" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700">Izinkan Akses</button>
-            <p id="permission-error" class="text-red-500 text-sm mt-4 hidden"></p>
-        </div>
-    </div>
-
+    
     <script type="module">
-        const BACKEND_URL = 'https://api-yh26o2tsva-as.a.run.app';
+        // [PENTING!] GANTI DENGAN URL BACKEND VERCEL ANDA SETELAH DEPLOY
+        const BACKEND_URL = '/api'; // URL relatif untuk Vercel, tidak perlu diubah!
 
         // --- DOM Elements ---
         const recordButton = document.getElementById('recordButton');
@@ -208,9 +201,6 @@
         const cameraModal = document.getElementById('cameraModal');
         const cameraStream = document.getElementById('camera-stream');
         const captureButton = document.getElementById('captureButton');
-        const permissionModal = document.getElementById('permissionModal');
-        const grantPermissionButton = document.getElementById('grantPermissionButton');
-        const permissionError = document.getElementById('permission-error');
         const takeDocScreenshotAreaButton = document.getElementById('takeDocScreenshotAreaButton');
         const takeNoteScreenshotAreaButton = document.getElementById('takeNoteScreenshotAreaButton');
         const toggleLogButton = document.getElementById('toggleLogButton');
@@ -276,6 +266,19 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
+        // [BARU] Fungsi terpusat untuk meminta izin
+        async function ensurePermissions(constraints) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                stream.getTracks().forEach(track => track.stop());
+                return true;
+            } catch (err) {
+                log(`Permission denied for ${JSON.stringify(constraints)}: ${err.message}`, 'ERROR');
+                alert('Akses ditolak. Harap aktifkan izin di pengaturan browser Anda untuk menggunakan fitur ini.\n\nBiasanya dengan mengklik ikon gembok di sebelah alamat URL.');
+                return false;
+            }
+        }
+
         async function getAudioStream() {
             log('Attempting to get audio stream...');
             const source = document.querySelector('input[name="audioSource"]:checked').value;
@@ -304,8 +307,8 @@
                     return new MediaStream([...destination.stream.getAudioTracks(), ...videoTracks]);
                 }
             } catch (err) {
+                // Error sudah ditangani oleh ensurePermissions, tapi ini sebagai fallback
                 log(`Error getting audio stream: ${err.message}`, 'ERROR');
-                alert('Gagal mendapatkan sumber audio. Pastikan Anda memberikan izin.');
                 return null;
             }
         }
@@ -332,6 +335,10 @@
             if (isRecording) {
                 if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
             } else {
+                // [MODIFIKASI] Cek izin sebelum memulai
+                const hasPermission = await ensurePermissions({audio: true});
+                if (!hasPermission) return;
+
                 recordedAudioBlob = null;
                 activeStream = await getAudioStream();
                 if (!activeStream) return;
@@ -357,17 +364,15 @@
             }
         }
 
-        // [DIPERBAIKI] Penanganan error yang lebih detail
         async function handleApiCall(url, options, context) {
             try {
                 const response = await fetch(url, options);
-                const responseText = await response.text(); // Baca body sekali saja
+                const responseText = await response.text(); 
                 if (!response.ok) {
                     let errorJson;
                     try {
                         errorJson = JSON.parse(responseText);
                     } catch (e) {
-                        // Jika respons bukan JSON (misal, halaman error HTML)
                         throw new Error(responseText);
                     }
                     throw new Error(errorJson.error || JSON.stringify(errorJson));
@@ -463,7 +468,11 @@
             }
         }
 
-        function openCamera(callback) {
+        async function openCamera(callback) {
+            // [MODIFIKASI] Cek izin sebelum membuka kamera
+            const hasPermission = await ensurePermissions({ video: true });
+            if (!hasPermission) return;
+
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
                 .then(stream => {
                     cameraStream.srcObject = stream;
@@ -494,6 +503,7 @@
                 return;
             }
             try {
+                // Izin akan diminta oleh browser secara otomatis saat getDisplayMedia dipanggil
                 const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
                 const videoTrack = stream.getVideoTracks()[0];
                 const imageCapture = new ImageCapture(videoTrack);
@@ -510,24 +520,6 @@
                 }, 'image/jpeg');
             } catch (err) {
                 log(`Screen capture error: ${err.message}`, 'ERROR');
-            }
-        }
-
-        async function requestInitialPermissions() {
-            log('Requesting initial permissions...');
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-                stream.getTracks().forEach(track => track.stop());
-                permissionModal.classList.add('hidden');
-                [recordButton, takeDocPhotoButton, takeScreenshotButton, takeDocScreenshotAreaButton, takeNoteScreenshotAreaButton].forEach(btn => {
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                });
-            } catch (err) {
-                log(`Permission denied: ${err.message}`, 'ERROR');
-                permissionError.classList.remove('hidden');
-                permissionError.textContent = "Anda harus memberikan izin untuk menggunakan fitur inti aplikasi.";
-                grantPermissionButton.textContent = "Coba Lagi";
             }
         }
 
@@ -618,7 +610,7 @@
             const zipFilename = `${generateBaseFilename()}_fotos.zip`;
             const formData = new FormData();
             formData.append('zipFilename', zipFilename);
-            allImages.forEach((img) => { formData.append('files', img.file, img.filename); });
+            allImages.forEach((img, index) => { formData.append(`file${index}`, img.file, img.filename); });
             try {
                 const response = await fetch(`${BACKEND_URL}/generate-zip`, { method: 'POST', body: formData });
                 if (!response.ok) throw new Error((await response.json()).error || 'Server error');
@@ -664,7 +656,16 @@
                 summarizeLoader.classList.add('hidden');
             }
         }
-        function markdownToHtml(markdown) { return markdown.replace(/\n/g, '<br>'); }
+        function markdownToHtml(markdown) {
+            // Simple converter
+            let html = markdown
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^\* (.*$)/gim, '<li>$1</li>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+            return html.replace(/<br><li>/g, '<li>').replace(/<\/li><br>/g, '</li>');
+        }
         
         // Event Listeners
         recordButton.addEventListener('click', handleRecordClick);
@@ -689,14 +690,14 @@
         downloadPhotosBtn.addEventListener('click', downloadPhotosAsZip);
         summarizeButton.addEventListener('click', summarizeTranscript);
         toggleLogButton.addEventListener('click', () => { logWrapper.classList.toggle('hidden'); });
-        grantPermissionButton.addEventListener('click', requestInitialPermissions);
         copyLogButton.addEventListener('click', () => {
             navigator.clipboard.writeText(logContainer.innerText);
             copyLogButton.textContent = 'Copied!';
             setTimeout(() => { copyLogButton.textContent = 'Copy Log'; }, 2000);
         });
 
-        window.addEventListener('load', async () => {
+        // [MODIFIKASI] Hapus pengecekan izin di awal
+        window.addEventListener('load', () => {
             log('Asisten Pintar initialized.');
             loadState();
 
@@ -706,31 +707,6 @@
                 document.getElementById('audioSourceBothLabel').classList.add('hidden');
                 takeDocScreenshotAreaButton.classList.add('hidden');
                 takeNoteScreenshotAreaButton.classList.add('hidden');
-            }
-
-            try {
-                const micStatus = await navigator.permissions.query({ name: 'microphone' });
-                const camStatus = await navigator.permissions.query({ name: 'camera' });
-
-                if (micStatus.state === 'prompt' || camStatus.state === 'prompt') {
-                    permissionModal.classList.remove('hidden');
-                    [recordButton, takeDocPhotoButton, takeScreenshotButton, takeDocScreenshotAreaButton, takeNoteScreenshotAreaButton].forEach(btn => {
-                        btn.disabled = true;
-                        btn.classList.add('opacity-50', 'cursor-not-allowed');
-                    });
-                } else if (micStatus.state === 'denied' || camStatus.state === 'denied') {
-                    permissionModal.classList.remove('hidden');
-                    permissionError.textContent = "Akses ditolak. Harap aktifkan izin di pengaturan browser Anda.";
-                    permissionError.classList.remove('hidden');
-                    grantPermissionButton.textContent = "Panduan Aktifkan Izin";
-                    grantPermissionButton.onclick = () => {
-                        alert("Untuk mengaktifkan izin, silakan klik ikon gembok (atau 'i') di sebelah kiri alamat URL situs ini, lalu ubah pengaturan untuk Mikrofon dan Kamera menjadi 'Izinkan' (Allow).");
-                    };
-                } else {
-                    log('Permissions already granted.');
-                }
-            } catch (e) {
-                log('Permission API not supported, will ask on first use.', 'WARN');
             }
         });
 
