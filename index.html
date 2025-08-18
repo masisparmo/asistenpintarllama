@@ -168,8 +168,8 @@
     </div>
     
     <script type="module">
-        // [PENTING!] GANTI DENGAN URL BACKEND VERCEL ANDA SETELAH DEPLOY
-        const BACKEND_URL = '/api'; // URL relatif untuk Vercel, tidak perlu diubah!
+        // [PERUBAHAN FINAL] Menggunakan URL Vercel yang sudah berhasil
+        const BACKEND_URL = 'https://asistenpintarllama-e2kklkt0e-isparmos-projects.vercel.app'; 
 
         // --- DOM Elements ---
         const recordButton = document.getElementById('recordButton');
@@ -267,7 +267,6 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        // [BARU] Fungsi terpusat untuk meminta izin
         async function ensurePermissions(constraints) {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -308,7 +307,6 @@
                     return new MediaStream([...destination.stream.getAudioTracks(), ...videoTracks]);
                 }
             } catch (err) {
-                // Error sudah ditangani oleh ensurePermissions, tapi ini sebagai fallback
                 log(`Error getting audio stream: ${err.message}`, 'ERROR');
                 return null;
             }
@@ -336,7 +334,6 @@
             if (isRecording) {
                 if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
             } else {
-                // [MODIFIKASI] Cek izin sebelum memulai
                 const hasPermission = await ensurePermissions({audio: true});
                 if (!hasPermission) return;
 
@@ -392,11 +389,10 @@
             const formData = new FormData();
             formData.append('file', audioBlob, 'recording.webm');
             try {
-                const result = await handleApiCall(`${BACKEND_URL}/transcribe`, { method: 'POST', body: formData }, 'Transcription');
+                const result = await handleApiCall(`${BACKEND_URL}/api/transcribe`, { method: 'POST', body: formData }, 'Transcription');
                 updateTranscript(result.text, "Suara");
                 statusSpan.textContent = 'Transkripsi berhasil!';
             } catch (error) {
-                // Log sudah dilakukan di dalam handleApiCall
             } finally {
                 statusLoader.classList.add('hidden');
             }
@@ -430,12 +426,11 @@
             const formData = new FormData();
             formData.append('file', file);
             try {
-                const result = await handleApiCall(`${BACKEND_URL}/analyze-image`, { method: 'POST', body: formData }, 'Image analysis');
+                const result = await handleApiCall(`${BACKEND_URL}/api/analyze-image`, { method: 'POST', body: formData }, 'Image analysis');
                 const generatedText = result.choices[0]?.message?.content || "Tidak dapat menganalisis gambar.";
                 updateTranscript(generatedText, "Gambar");
                 statusSpan.textContent = 'Analisis berhasil.';
             } catch (error) {
-                // Log sudah dilakukan di dalam handleApiCall
             } finally {
                 statusLoader.classList.add('hidden');
             }
@@ -470,7 +465,6 @@
         }
 
         async function openCamera(callback) {
-            // [MODIFIKASI] Cek izin sebelum membuka kamera
             const hasPermission = await ensurePermissions({ video: true });
             if (!hasPermission) return;
 
@@ -504,7 +498,6 @@
                 return;
             }
             try {
-                // Izin akan diminta oleh browser secara otomatis saat getDisplayMedia dipanggil
                 const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
                 const videoTrack = stream.getVideoTracks()[0];
                 const imageCapture = new ImageCapture(videoTrack);
@@ -573,7 +566,7 @@
             button.prepend(spinner);
             const filename = `${generateBaseFilename()}.pdf`;
             try {
-                const response = await fetch(`${BACKEND_URL}/generate-pdf`, {
+                const response = await fetch(`${BACKEND_URL}/api/generate-pdf`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ reportContent: generateReportContent('md'), filename: filename })
@@ -613,7 +606,7 @@
             formData.append('zipFilename', zipFilename);
             allImages.forEach((img, index) => { formData.append(`file${index}`, img.file, img.filename); });
             try {
-                const response = await fetch(`${BACKEND_URL}/generate-zip`, { method: 'POST', body: formData });
+                const response = await fetch(`${BACKEND_URL}/api/generate-zip`, { method: 'POST', body: formData });
                 if (!response.ok) throw new Error((await response.json()).error || 'Server error');
                 const blob = await response.blob();
                 downloadAsFile(zipFilename, blob, 'application/zip');
@@ -639,7 +632,7 @@
             summarizeLoader.classList.remove('hidden');
             const combinedContent = `${generateReportContent('txt')}`;
             try {
-                const response = await fetch(`${BACKEND_URL}/summarize`, {
+                const response = await fetch(`${BACKEND_URL}/api/summarize`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ theme: document.getElementById('summaryTheme').value, content: combinedContent })
@@ -658,7 +651,6 @@
             }
         }
         function markdownToHtml(markdown) {
-            // Simple converter
             let html = markdown
                 .replace(/^### (.*$)/gim, '<h3>$1</h3>')
                 .replace(/^## (.*$)/gim, '<h2>$1</h2>')
@@ -668,7 +660,6 @@
             return html.replace(/<br><li>/g, '<li>').replace(/<\/li><br>/g, '</li>');
         }
         
-        // Event Listeners
         recordButton.addEventListener('click', handleRecordClick);
         addNoteButton.addEventListener('click', handleManualNote);
         takeDocPhotoButton.addEventListener('click', () => openCamera(blob => {
@@ -697,7 +688,6 @@
             setTimeout(() => { copyLogButton.textContent = 'Copy Log'; }, 2000);
         });
 
-        // [MODIFIKASI] Hapus pengecekan izin di awal
         window.addEventListener('load', () => {
             log('Asisten Pintar initialized.');
             loadState();
