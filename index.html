@@ -183,7 +183,7 @@
     
     <script type="module">
         // Ganti dengan URL Vercel Anda yang terakhir berhasil
-        const BACKEND_URL = 'https://asistenpintarllama-2no80aqvt-isparmos-projects.vercel.app'; 
+        const BACKEND_URL = 'https://asistenpintarllama-41md9kchu-isparmos-projects.vercel.app'; 
 
         // --- DOM Elements ---
         const newSessionButton = document.getElementById('newSessionButton');
@@ -405,14 +405,10 @@
             formData.append('file', audioBlob, 'recording.webm');
             try {
                 const result = await handleApiCall(`${BACKEND_URL}/api/transcribe`, { method: 'POST', body: formData }, 'Transcription');
-                // [PERBAIKAN] Penanganan error yang lebih baik
-                if (result.error) {
-                    throw new Error(result.error);
-                }
+                if (result.error) throw new Error(result.error);
                 updateTranscript(result, "Suara");
                 statusSpan.textContent = 'Transkripsi berhasil!';
             } catch (error) {
-                // Error sudah di-log di dalam handleApiCall
             } finally {
                 statusLoader.classList.add('hidden');
             }
@@ -471,15 +467,11 @@
             formData.append('file', file);
             try {
                 const result = await handleApiCall(`${BACKEND_URL}/api/analyze-image`, { method: 'POST', body: formData }, 'Image analysis');
-                // [PERBAIKAN] Penanganan error yang lebih baik
-                if (result.error) {
-                    throw new Error(result.error);
-                }
+                if (result.error) throw new Error(result.error);
                 const translationResult = result.choices[0]?.message?.content || { original: "Tidak dapat menganalisis gambar.", translated: "Tidak dapat menganalisis gambar." };
                 updateTranscript(translationResult, "Gambar");
                 statusSpan.textContent = 'Analisis berhasil.';
             } catch (error) {
-                // Error sudah di-log di dalam handleApiCall
             } finally {
                 statusLoader.classList.add('hidden');
             }
@@ -704,7 +696,6 @@
         }
 
         function updateTranscript(result, source) {
-            // [PERBAIKAN] Menyesuaikan dengan format respons baru dari backend
             const original = result.original || (typeof result === 'string' ? result : '');
             const translated = result.translated || (typeof result === 'string' ? result : '');
 
@@ -719,7 +710,7 @@
             displayHTML += `</div>`;
             transcriptOutput.innerHTML += displayHTML;
             
-            fullTranscript += `[${source} - Asli]:\n${original}\n\n[${source} - Terjemahan]:\n${translated}\n\n---\n\n`;
+            fullTranscript += `[${source} - Asli]:\n${original || 'N/A'}\n\n[${source} - Terjemahan]:\n${translated}\n\n---\n\n`;
             summarizeButton.disabled = false;
             saveState();
         }
