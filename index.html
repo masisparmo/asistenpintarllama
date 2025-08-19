@@ -59,7 +59,6 @@
                     <option value="ideation">Pencatat Ide</option>
                 </select>
                 <input type="text" id="speakerName" placeholder="Pembicara (jika ada)" class="p-2 border border-slate-300 rounded-lg">
-                <!-- [PERBAIKAN 1] Menambahkan class 'w-full' agar lebar input sama dengan yang lain -->
                 <input type="date" id="meetingDate" class="p-2 border border-slate-300 rounded-lg w-full">
                 <input type="time" id="meetingTime" class="p-2 border border-slate-300 rounded-lg w-full">
                 <input type="text" id="meetingPlace" placeholder="Tempat" class="p-2 border border-slate-300 rounded-lg">
@@ -97,10 +96,9 @@
                     <div class="flex flex-col sm:flex-row gap-2">
                         <button id="takeScreenshotButton" class="flex-1 bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700">Ambil Foto</button>
                         <button id="takeNoteScreenshotAreaButton" class="flex-1 bg-teal-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-teal-700">Ambil Screenshot</button>
-                        <!-- [PERBAIKAN 3] Mengubah teks tombol secara responsif -->
+                        {/* [PERBAIKAN] Mengubah teks tombol agar konsisten di semua layar */}
                         <label class="flex-1 bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700 text-center cursor-pointer">
-                            <span class="md:hidden">Upload SS</span>
-                            <span class="hidden md:inline">Upload Screenshot</span>
+                            <span>Upload Screenshot</span>
                             <input type="file" id="uploadScreenshot" class="hidden" accept="image/*" multiple>
                         </label>
                     </div>
@@ -191,7 +189,7 @@
     
     <script type="module">
         // Ganti dengan URL Vercel Anda yang terakhir berhasil
-        const BACKEND_URL = 'https://asistenpintarllama-7czrvjrcm-isparmos-projects.vercel.app'; 
+        const BACKEND_URL = 'https://asistenpintarllama-dhiucg91t-isparmos-projects.vercel.app'; 
 
         // --- DOM Elements ---
         const newSessionButton = document.getElementById('newSessionButton');
@@ -762,17 +760,14 @@
             }
         }
 
-        // [PERBAIKAN 2] Fungsi untuk mengatur tanggal dan jam default
         function setDefaultDateTime() {
             const now = new Date();
             
-            // Format YYYY-MM-DD untuk input tanggal
             const year = now.getFullYear();
             const month = (now.getMonth() + 1).toString().padStart(2, '0');
             const day = now.getDate().toString().padStart(2, '0');
             const today = `${year}-${month}-${day}`;
 
-            // Format HH:MM untuk input waktu
             const hours = now.getHours().toString().padStart(2, '0');
             const minutes = now.getMinutes().toString().padStart(2, '0');
             const currentTime = `${hours}:${minutes}`;
@@ -815,7 +810,7 @@
 
         window.addEventListener('load', () => {
             log('Asisten Pintar initialized.');
-            setDefaultDateTime(); // Panggil fungsi untuk mengatur tanggal & jam
+            setDefaultDateTime(); 
             loadState();
 
             if (!navigator.mediaDevices.getDisplayMedia) {
