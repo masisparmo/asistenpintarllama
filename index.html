@@ -36,9 +36,7 @@
     <div class="container mx-auto p-6 md:p-8 max-w-6xl bg-white rounded-2xl shadow-2xl border border-slate-200">
         
         <header class="text-center mb-8 relative">
-            <div class="absolute top-0 right-0">
-                <button id="newSessionButton" class="bg-slate-200 text-slate-700 text-sm font-semibold py-2 px-4 rounded-lg hover:bg-slate-300">Sesi Baru</button>
-            </div>
+            <!-- Tombol Sesi Baru dipindahkan menjadi FAB -->
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Asisten Pintar</h1>
             <p class="text-slate-600 mt-2">Asisten Pencatat Pintar Powered by Llama Ai</p>
             <div class="mt-4 flex justify-center items-center space-x-4 text-sm">
@@ -70,10 +68,11 @@
             </div>
             <div class="mt-4 pt-4 border-t border-slate-200">
                  <h3 class="text-lg font-semibold mb-2 text-slate-700">Dokumentasi Foto</h3>
-                 <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-2">
-                     <button id="takeDocPhotoButton" class="bg-blue-500 text-white text-sm font-semibold py-2 px-3 rounded-lg hover:bg-blue-600">Ambil Foto</button>
-                     <button id="takeDocScreenshotAreaButton" class="bg-cyan-500 text-white text-sm font-semibold py-2 px-3 rounded-lg hover:bg-cyan-600">Ambil Screenshot</button>
-                     <label class="col-span-2 md:col-span-1 bg-blue-500 text-white text-sm font-semibold py-2 px-3 rounded-lg hover:bg-blue-600 text-center cursor-pointer">Upload Foto<input type="file" id="uploadDocPhoto" class="hidden" accept="image/*" multiple></label>
+                 <!-- [PERBAIKAN MOBILE] Menggunakan flexbox untuk layout tombol yang lebih rapi -->
+                 <div class="flex flex-col sm:flex-row gap-2 mb-2">
+                     <button id="takeDocPhotoButton" class="flex-1 bg-blue-500 text-white text-sm font-semibold py-2 px-3 rounded-lg hover:bg-blue-600">Ambil Foto</button>
+                     <button id="takeDocScreenshotAreaButton" class="flex-1 bg-cyan-500 text-white text-sm font-semibold py-2 px-3 rounded-lg hover:bg-cyan-600">Ambil Screenshot</button>
+                     <label class="flex-1 bg-blue-500 text-white text-sm font-semibold py-2 px-3 rounded-lg hover:bg-blue-600 text-center cursor-pointer">Upload Foto<input type="file" id="uploadDocPhoto" class="hidden" accept="image/*" multiple></label>
                  </div>
                  <div id="doc-photos-preview" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2"></div>
             </div>
@@ -97,10 +96,11 @@
                     <div id="recording-indicator" class="text-center text-sm font-mono text-slate-700 hidden">
                         <span id="timer">00:00</span> | <span id="size-estimator">0.0 MB</span>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <button id="takeScreenshotButton" class="bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700">Ambil Foto</button>
-                        <button id="takeNoteScreenshotAreaButton" class="bg-teal-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-teal-700">Ambil Screenshot</button>
-                        <label class="col-span-2 md:col-span-1 bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700 text-center cursor-pointer">Upload SS<input type="file" id="uploadScreenshot" class="hidden" accept="image/*" multiple></label>
+                    <!-- [PERBAIKAN MOBILE] Menggunakan flexbox untuk layout tombol yang lebih rapi -->
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button id="takeScreenshotButton" class="flex-1 bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700">Ambil Foto</button>
+                        <button id="takeNoteScreenshotAreaButton" class="flex-1 bg-teal-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-teal-700">Ambil Screenshot</button>
+                        <label class="flex-1 bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700 text-center cursor-pointer">Upload SS<input type="file" id="uploadScreenshot" class="hidden" accept="image/*" multiple></label>
                     </div>
                      <div id="screenshot-photos-preview" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2"></div>
                     <div class="border-t border-slate-200 pt-4">
@@ -172,6 +172,13 @@
             <p>Dibuat oleh <a href="https://github.com/masisparmo" target="_blank" class="font-semibold text-indigo-600 hover:underline">masisparmo</a> untuk Hackathon Meta-Hacktiv8 2025.</p>
         </footer>
     </div>
+
+    <!-- [PERBAIKAN MOBILE] Tombol Sesi Baru menjadi Floating Action Button (FAB) -->
+    <button id="newSessionButton" title="Mulai Sesi Baru" class="fixed bottom-6 right-6 bg-indigo-600 text-white rounded-full p-4 shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 z-50">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+        </svg>
+    </button>
 
     <!-- Modals -->
     <div id="cameraModal" class="fixed inset-0 z-50 items-center justify-center hidden flex">
@@ -414,7 +421,6 @@
             }
         }
         
-        // [PERBAIKAN 2] Fungsi handleImageUpload diperbarui dengan kompresi otomatis
         async function handleImageUpload(event, type) {
             const files = event.target.files;
             if (!files || files.length === 0) return;
@@ -431,7 +437,6 @@
                 statusLoader.classList.remove('hidden');
 
                 try {
-                    // Gunakan variabel global imageCompression
                     const compressedFile = await window.imageCompression(file, options);
                     log(`File terkompresi: ${compressedFile.name}, ukuran: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`, 'SUCCESS');
 
