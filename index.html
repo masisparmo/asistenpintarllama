@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- [PERBAIKAN 1] Menambahkan library untuk kompresi gambar di browser -->
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
     <link rel="icon" href="/path/to/favicon.ico">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -186,7 +188,7 @@
         // --- DOM Elements ---
         const newSessionButton = document.getElementById('newSessionButton');
         const recordButton = document.getElementById('recordButton');
-        const imageUpload = document.getElementById('uploadScreenshot');
+        const uploadScreenshotInput = document.getElementById('uploadScreenshot');
         const manualNote = document.getElementById('manualNote');
         const addNoteButton = document.getElementById('addNoteButton');
         const summarizeButton = document.getElementById('summarizeButton');
@@ -403,35 +405,63 @@
             formData.append('file', audioBlob, 'recording.webm');
             try {
                 const result = await handleApiCall(`${BACKEND_URL}/api/transcribe`, { method: 'POST', body: formData }, 'Transcription');
-                // [MODIFIKASI] Mengirim objek lengkap ke updateTranscript
+                // [PERBAIKAN] Penanganan error yang lebih baik
+                if (result.error) {
+                    throw new Error(result.error);
+                }
                 updateTranscript(result, "Suara");
                 statusSpan.textContent = 'Transkripsi berhasil!';
             } catch (error) {
+                // Error sudah di-log di dalam handleApiCall
             } finally {
                 statusLoader.classList.add('hidden');
             }
         }
         
+        // [PERBAIKAN 2] Fungsi handleImageUpload diperbarui dengan kompresi otomatis
         async function handleImageUpload(event, type) {
             const files = event.target.files;
             if (!files || files.length === 0) return;
             
+            const options = {
+                maxSizeMB: 2.8,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+            };
+
             for (const file of files) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const newImage = { file, dataUrl: e.target.result, type, filename: file.name };
-                    if (type === 'documentation') {
-                        documentationImages.push(newImage);
-                        renderDocPhotos();
-                    } else {
-                        screenshotImages.push(newImage);
-                        renderScreenshotPhotos();
-                        analyzeScreenshot(file);
-                    }
-                    saveState();
-                };
-                reader.readAsDataURL(file);
+                log(`File asli: ${file.name}, ukuran: ${(file.size / 1024 / 1024).toFixed(2)} MB`, 'INFO');
+                statusSpan.textContent = `Mengompres gambar ${file.name}...`;
+                statusLoader.classList.remove('hidden');
+
+                try {
+                    // Gunakan variabel global imageCompression
+                    const compressedFile = await window.imageCompression(file, options);
+                    log(`File terkompresi: ${compressedFile.name}, ukuran: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`, 'SUCCESS');
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const newImage = { file: compressedFile, dataUrl: e.target.result, type, filename: compressedFile.name };
+                        if (type === 'documentation') {
+                            documentationImages.push(newImage);
+                            renderDocPhotos();
+                        } else {
+                            screenshotImages.push(newImage);
+                            renderScreenshotPhotos();
+                            analyzeScreenshot(compressedFile);
+                        }
+                        saveState();
+                    };
+                    reader.readAsDataURL(compressedFile);
+                } catch (error) {
+                    log(`Gagal mengompres gambar: ${error.message}`, 'ERROR');
+                    alert(`Terjadi kesalahan saat memproses gambar: ${file.name}. Mungkin file tersebut bukan format gambar yang didukung.`);
+                } finally {
+                    statusLoader.classList.add('hidden');
+                    statusSpan.textContent = 'Siap...';
+                }
             }
+            event.target.value = ''; 
         }
 
         async function analyzeScreenshot(file) {
@@ -441,17 +471,20 @@
             formData.append('file', file);
             try {
                 const result = await handleApiCall(`${BACKEND_URL}/api/analyze-image`, { method: 'POST', body: formData }, 'Image analysis');
+                // [PERBAIKAN] Penanganan error yang lebih baik
+                if (result.error) {
+                    throw new Error(result.error);
+                }
                 const translationResult = result.choices[0]?.message?.content || { original: "Tidak dapat menganalisis gambar.", translated: "Tidak dapat menganalisis gambar." };
-                // [MODIFIKASI] Mengirim objek lengkap ke updateTranscript
                 updateTranscript(translationResult, "Gambar");
                 statusSpan.textContent = 'Analisis berhasil.';
             } catch (error) {
+                // Error sudah di-log di dalam handleApiCall
             } finally {
                 statusLoader.classList.add('hidden');
             }
         }
 
-        // [BARU] Fungsi render foto yang generik dengan tombol hapus
         function renderPhotos(container, imageArray, type) {
             container.innerHTML = '';
             imageArray.forEach((img, index) => {
@@ -476,7 +509,6 @@
         function renderDocPhotos() { renderPhotos(docPhotosPreview, documentationImages, 'documentation'); }
         function renderScreenshotPhotos() { renderPhotos(screenshotPhotosPreview, screenshotImages, 'screenshot'); }
         
-        // [BARU] Fungsi untuk menghapus foto
         function deletePhoto(index, type) {
             if (type === 'documentation') {
                 documentationImages.splice(index, 1);
@@ -488,11 +520,9 @@
             saveState();
         }
 
-
         function handleManualNote() {
             const note = manualNote.value.trim();
             if (note) {
-                // [MODIFIKASI] Mengirim objek agar konsisten
                 updateTranscript({ original: note, translated: note }, "Manual");
                 manualNote.value = "";
             }
@@ -543,17 +573,16 @@
                 canvas.height = frame.height;
                 canvas.getContext('2d').drawImage(frame, 0, 0);
                 canvas.toBlob(blob => {
-                    // [MODIFIKASI] Menggunakan nama file yang diformat
                     const filename = `${generateBaseFilename()}_${type}_${Date.now()}.jpg`;
                     const file = new File([blob], filename, { type: 'image/jpeg' });
-                    handleImageUpload({ target: { files: [file] } }, type);
+                    const event = { target: { files: [file] } };
+                    handleImageUpload(event, type);
                 }, 'image/jpeg');
             } catch (err) {
                 log(`Screen capture error: ${err.message}`, 'ERROR');
             }
         }
 
-        // [MODIFIKASI] Fungsi untuk format nama file
         function generateBaseFilename() {
             const theme = document.getElementById('summaryTheme').value.replace(/[^a-z0-9]/gi, '_').toLowerCase();
             const name = (document.getElementById('meetingName').value.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'acara');
@@ -654,7 +683,6 @@
             const formData = new FormData();
             formData.append('zipFilename', zipFilename);
             
-            // [MODIFIKASI] Mengganti nama file foto di dalam ZIP
             allImages.forEach((img, index) => { 
                 const extension = img.filename.split('.').pop() || 'jpg';
                 const newFilename = `${generateBaseFilename()}_foto_${index + 1}.${extension}`;
@@ -675,22 +703,22 @@
             }
         }
 
-        // [MODIFIKASI] Fungsi untuk menampilkan transkrip ganda
         function updateTranscript(result, source) {
-            const { original, translated } = result;
+            // [PERBAIKAN] Menyesuaikan dengan format respons baru dari backend
+            const original = result.original || (typeof result === 'string' ? result : '');
+            const translated = result.translated || (typeof result === 'string' ? result : '');
+
             if (transcriptEmpty) { transcriptOutput.innerHTML = ""; transcriptEmpty = false; }
             
             let displayHTML = `<div class="mb-2 p-2 bg-slate-100 rounded"><strong>${source}:</strong><br>`;
-            // Tampilkan keduanya hanya jika berbeda (dan bukan teks manual)
             if (original && translated && original.trim().toLowerCase() !== translated.trim().toLowerCase() && source !== "Manual") {
                 displayHTML += `<span class="text-xs text-slate-500">[ASLI]</span> ${original}<br><span class="text-xs text-green-600">[TERJEMAHAN]</span> ${translated}`;
             } else {
-                displayHTML += translated; // Tampilkan terjemahan (atau teks asli jika sama)
+                displayHTML += translated; 
             }
             displayHTML += `</div>`;
             transcriptOutput.innerHTML += displayHTML;
             
-            // [MODIFIKASI] Menyimpan transkrip lengkap sesuai permintaan
             fullTranscript += `[${source} - Asli]:\n${original}\n\n[${source} - Terjemahan]:\n${translated}\n\n---\n\n`;
             summarizeButton.disabled = false;
             saveState();
@@ -730,37 +758,10 @@
             return html.replace(/<br><li>/g, '<li>').replace(/<\/li><br>/g, '</li>');
         }
         
-        // [BARU] Fungsi untuk memulai sesi baru
         function startNewSession() {
             if (confirm("Apakah Anda yakin ingin memulai sesi baru? Semua data yang belum disimpan akan hilang.")) {
                 localStorage.removeItem('asistenPintarState');
-                
-                // Reset state variables
-                fullTranscript = "";
-                summaryText = "";
-                documentationImages = [];
-                screenshotImages = [];
-                recordedAudioBlob = null;
-                transcriptEmpty = true;
-
-                // Reset UI elements
-                document.getElementById('meetingName').value = '';
-                document.getElementById('speakerName').value = '';
-                document.getElementById('meetingDate').value = '';
-                document.getElementById('meetingTime').value = '';
-                document.getElementById('meetingPlace').value = '';
-                document.getElementById('meetingNotes').value = '';
-                manualNote.value = '';
-                
-                transcriptOutput.innerHTML = '<p class="text-slate-400">Catatan dari suara, gambar, dan ketikan akan muncul di sini.</p>';
-                summaryOutput.innerHTML = '<p class="text-slate-500">Ringkasan akan muncul di sini.</p>';
-                docPhotosPreview.innerHTML = '';
-                screenshotPhotosPreview.innerHTML = '';
-
-                summarizeButton.disabled = true;
-                saveOptions.classList.add('hidden');
-                
-                log('Sesi baru telah dimulai.', 'SUCCESS');
+                window.location.reload();
             }
         }
 
@@ -778,7 +779,7 @@
             handleImageUpload({ target: { files: [file] } }, 'screenshot');
         }));
         uploadDocPhotoInput.addEventListener('change', (e) => handleImageUpload(e, 'documentation'));
-        imageUpload.addEventListener('change', (e) => handleImageUpload(e, 'screenshot'));
+        uploadScreenshotInput.addEventListener('change', (e) => handleImageUpload(e, 'screenshot'));
         takeDocScreenshotAreaButton.addEventListener('click', () => captureScreenArea('documentation'));
         takeNoteScreenshotAreaButton.addEventListener('click', () => captureScreenArea('screenshot'));
         captureButton.addEventListener('click', captureImage);
