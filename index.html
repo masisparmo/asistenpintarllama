@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asisten Pintar - Asisten Pencatat Pintar Powered by Llama Ai</title>
+    <title>Asisten Pintar - Asisten Pencatat Notulen Powered by Llama Ai</title>
     <script src="https://cdn-tailwindcss.vercel.app/"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,12 +19,24 @@
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         #cameraModal { background-color: rgba(0,0,0,0.6); }
         .btn-spinner { border-top-color: white !important; width: 20px !important; height: 20px !important; }
+        .photo-container { position: relative; }
+        .delete-photo-btn {
+            position: absolute; top: -4px; right: -4px;
+            background-color: rgba(239, 68, 68, 0.9); color: white;
+            border-radius: 50%; width: 20px; height: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold; cursor: pointer;
+            border: 1px solid white; line-height: 1;
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen p-4">
     <div class="container mx-auto p-6 md:p-8 max-w-6xl bg-white rounded-2xl shadow-2xl border border-slate-200">
         
         <header class="text-center mb-8 relative">
+            <div class="absolute top-0 right-0">
+                <button id="newSessionButton" class="bg-slate-200 text-slate-700 text-sm font-semibold py-2 px-4 rounded-lg hover:bg-slate-300">Sesi Baru</button>
+            </div>
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Asisten Pintar</h1>
             <p class="text-slate-600 mt-2">Asisten Pencatat Pintar Powered by Llama Ai</p>
             <div class="mt-4 flex justify-center items-center space-x-4 text-sm">
@@ -168,10 +180,11 @@
     </div>
     
     <script type="module">
-        // [PERUBAHAN FINAL] Menggunakan URL Vercel yang sudah berhasil
-        const BACKEND_URL = 'https://asistenpintarllama-j9sdg6vq1-isparmos-projects.vercel.app'; 
+        // Ganti dengan URL Vercel Anda yang terakhir berhasil
+        const BACKEND_URL = 'https://asistenpintarllama-ks9kvm5fu-isparmos-projects.vercel.app'; 
 
         // --- DOM Elements ---
+        const newSessionButton = document.getElementById('newSessionButton');
         const recordButton = document.getElementById('recordButton');
         const imageUpload = document.getElementById('uploadScreenshot');
         const manualNote = document.getElementById('manualNote');
@@ -390,7 +403,8 @@
             formData.append('file', audioBlob, 'recording.webm');
             try {
                 const result = await handleApiCall(`${BACKEND_URL}/api/transcribe`, { method: 'POST', body: formData }, 'Transcription');
-                updateTranscript(result.text, "Suara");
+                // [MODIFIKASI] Mengirim objek lengkap ke updateTranscript
+                updateTranscript(result, "Suara");
                 statusSpan.textContent = 'Transkripsi berhasil!';
             } catch (error) {
             } finally {
@@ -427,8 +441,9 @@
             formData.append('file', file);
             try {
                 const result = await handleApiCall(`${BACKEND_URL}/api/analyze-image`, { method: 'POST', body: formData }, 'Image analysis');
-                const generatedText = result.choices[0]?.message?.content || "Tidak dapat menganalisis gambar.";
-                updateTranscript(generatedText, "Gambar");
+                const translationResult = result.choices[0]?.message?.content || { original: "Tidak dapat menganalisis gambar.", translated: "Tidak dapat menganalisis gambar." };
+                // [MODIFIKASI] Mengirim objek lengkap ke updateTranscript
+                updateTranscript(translationResult, "Gambar");
                 statusSpan.textContent = 'Analisis berhasil.';
             } catch (error) {
             } finally {
@@ -436,30 +451,49 @@
             }
         }
 
-        function renderDocPhotos() {
-            docPhotosPreview.innerHTML = '';
-            documentationImages.forEach(img => {
+        // [BARU] Fungsi render foto yang generik dengan tombol hapus
+        function renderPhotos(container, imageArray, type) {
+            container.innerHTML = '';
+            imageArray.forEach((img, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'photo-container';
+                
                 const imgEl = document.createElement('img');
                 imgEl.src = img.dataUrl;
                 imgEl.className = 'w-full h-16 object-cover rounded-md';
-                docPhotosPreview.appendChild(imgEl);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '&times;';
+                deleteBtn.className = 'delete-photo-btn';
+                deleteBtn.onclick = () => deletePhoto(index, type);
+
+                wrapper.appendChild(imgEl);
+                wrapper.appendChild(deleteBtn);
+                container.appendChild(wrapper);
             });
         }
 
-        function renderScreenshotPhotos() {
-            screenshotPhotosPreview.innerHTML = '';
-            screenshotImages.forEach(img => {
-                const imgEl = document.createElement('img');
-                imgEl.src = img.dataUrl;
-                imgEl.className = 'w-full h-16 object-cover rounded-md';
-                screenshotPhotosPreview.appendChild(imgEl);
-            });
+        function renderDocPhotos() { renderPhotos(docPhotosPreview, documentationImages, 'documentation'); }
+        function renderScreenshotPhotos() { renderPhotos(screenshotPhotosPreview, screenshotImages, 'screenshot'); }
+        
+        // [BARU] Fungsi untuk menghapus foto
+        function deletePhoto(index, type) {
+            if (type === 'documentation') {
+                documentationImages.splice(index, 1);
+                renderDocPhotos();
+            } else {
+                screenshotImages.splice(index, 1);
+                renderScreenshotPhotos();
+            }
+            saveState();
         }
+
 
         function handleManualNote() {
             const note = manualNote.value.trim();
             if (note) {
-                updateTranscript(note, "Manual");
+                // [MODIFIKASI] Mengirim objek agar konsisten
+                updateTranscript({ original: note, translated: note }, "Manual");
                 manualNote.value = "";
             }
         }
@@ -509,7 +543,9 @@
                 canvas.height = frame.height;
                 canvas.getContext('2d').drawImage(frame, 0, 0);
                 canvas.toBlob(blob => {
-                    const file = new File([blob], `screenshot-${Date.now()}.jpg`, { type: 'image/jpeg' });
+                    // [MODIFIKASI] Menggunakan nama file yang diformat
+                    const filename = `${generateBaseFilename()}_${type}_${Date.now()}.jpg`;
+                    const file = new File([blob], filename, { type: 'image/jpeg' });
                     handleImageUpload({ target: { files: [file] } }, type);
                 }, 'image/jpeg');
             } catch (err) {
@@ -517,10 +553,23 @@
             }
         }
 
+        // [MODIFIKASI] Fungsi untuk format nama file
         function generateBaseFilename() {
+            const theme = document.getElementById('summaryTheme').value.replace(/[^a-z0-9]/gi, '_').toLowerCase();
             const name = (document.getElementById('meetingName').value.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'acara');
-            const date = document.getElementById('meetingDate').value || new Date().toISOString().split('T')[0];
-            return `${name}_${date.replace(/-/g, '')}`;
+            const dateInput = document.getElementById('meetingDate').value;
+            let dateStr;
+            if (dateInput) {
+                const [year, month, day] = dateInput.split('-');
+                dateStr = `${day}${month}${year}`;
+            } else {
+                const today = new Date();
+                const day = String(today.getDate()).padStart(2, '0');
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const year = today.getFullYear();
+                dateStr = `${day}${month}${year}`;
+            }
+            return `${theme}_${name}_${dateStr}`;
         }
 
         function cleanMarkdownForTxt(markdown) {
@@ -604,7 +653,14 @@
             const zipFilename = `${generateBaseFilename()}_fotos.zip`;
             const formData = new FormData();
             formData.append('zipFilename', zipFilename);
-            allImages.forEach((img, index) => { formData.append(`file${index}`, img.file, img.filename); });
+            
+            // [MODIFIKASI] Mengganti nama file foto di dalam ZIP
+            allImages.forEach((img, index) => { 
+                const extension = img.filename.split('.').pop() || 'jpg';
+                const newFilename = `${generateBaseFilename()}_foto_${index + 1}.${extension}`;
+                formData.append(`file${index}`, img.file, newFilename); 
+            });
+
             try {
                 const response = await fetch(`${BACKEND_URL}/api/generate-zip`, { method: 'POST', body: formData });
                 if (!response.ok) throw new Error((await response.json()).error || 'Server error');
@@ -619,13 +675,27 @@
             }
         }
 
-        function updateTranscript(newText, source) {
+        // [MODIFIKASI] Fungsi untuk menampilkan transkrip ganda
+        function updateTranscript(result, source) {
+            const { original, translated } = result;
             if (transcriptEmpty) { transcriptOutput.innerHTML = ""; transcriptEmpty = false; }
-            transcriptOutput.innerHTML += `<div class="mb-2 p-2 bg-slate-100 rounded"><strong>${source}:</strong> ${newText}</div>`;
-            fullTranscript += `[${source}]:\n${newText}\n\n`;
+            
+            let displayHTML = `<div class="mb-2 p-2 bg-slate-100 rounded"><strong>${source}:</strong><br>`;
+            // Tampilkan keduanya hanya jika berbeda (dan bukan teks manual)
+            if (original && translated && original.trim().toLowerCase() !== translated.trim().toLowerCase() && source !== "Manual") {
+                displayHTML += `<span class="text-xs text-slate-500">[ASLI]</span> ${original}<br><span class="text-xs text-green-600">[TERJEMAHAN]</span> ${translated}`;
+            } else {
+                displayHTML += translated; // Tampilkan terjemahan (atau teks asli jika sama)
+            }
+            displayHTML += `</div>`;
+            transcriptOutput.innerHTML += displayHTML;
+            
+            // [MODIFIKASI] Menyimpan transkrip lengkap sesuai permintaan
+            fullTranscript += `[${source} - Asli]:\n${original}\n\n[${source} - Terjemahan]:\n${translated}\n\n---\n\n`;
             summarizeButton.disabled = false;
             saveState();
         }
+
         async function summarizeTranscript() {
             log('Summarization process started.');
             summarizeButton.disabled = true;
@@ -660,18 +730,55 @@
             return html.replace(/<br><li>/g, '<li>').replace(/<\/li><br>/g, '</li>');
         }
         
+        // [BARU] Fungsi untuk memulai sesi baru
+        function startNewSession() {
+            if (confirm("Apakah Anda yakin ingin memulai sesi baru? Semua data yang belum disimpan akan hilang.")) {
+                localStorage.removeItem('asistenPintarState');
+                
+                // Reset state variables
+                fullTranscript = "";
+                summaryText = "";
+                documentationImages = [];
+                screenshotImages = [];
+                recordedAudioBlob = null;
+                transcriptEmpty = true;
+
+                // Reset UI elements
+                document.getElementById('meetingName').value = '';
+                document.getElementById('speakerName').value = '';
+                document.getElementById('meetingDate').value = '';
+                document.getElementById('meetingTime').value = '';
+                document.getElementById('meetingPlace').value = '';
+                document.getElementById('meetingNotes').value = '';
+                manualNote.value = '';
+                
+                transcriptOutput.innerHTML = '<p class="text-slate-400">Catatan dari suara, gambar, dan ketikan akan muncul di sini.</p>';
+                summaryOutput.innerHTML = '<p class="text-slate-500">Ringkasan akan muncul di sini.</p>';
+                docPhotosPreview.innerHTML = '';
+                screenshotPhotosPreview.innerHTML = '';
+
+                summarizeButton.disabled = true;
+                saveOptions.classList.add('hidden');
+                
+                log('Sesi baru telah dimulai.', 'SUCCESS');
+            }
+        }
+
+        newSessionButton.addEventListener('click', startNewSession);
         recordButton.addEventListener('click', handleRecordClick);
         addNoteButton.addEventListener('click', handleManualNote);
         takeDocPhotoButton.addEventListener('click', () => openCamera(blob => {
-            const file = new File([blob], `doc-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+            const filename = `${generateBaseFilename()}_doc_${Date.now()}.jpg`;
+            const file = new File([blob], filename, { type: 'image/jpeg' });
             handleImageUpload({ target: { files: [file] } }, 'documentation');
         }));
         takeScreenshotButton.addEventListener('click', () => openCamera(blob => {
-            const file = new File([blob], `ss-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+            const filename = `${generateBaseFilename()}_ss_${Date.now()}.jpg`;
+            const file = new File([blob], filename, { type: 'image/jpeg' });
             handleImageUpload({ target: { files: [file] } }, 'screenshot');
         }));
-        uploadDocPhoto.addEventListener('change', (e) => handleImageUpload(e, 'documentation'));
-        uploadScreenshot.addEventListener('change', (e) => handleImageUpload(e, 'screenshot'));
+        uploadDocPhotoInput.addEventListener('change', (e) => handleImageUpload(e, 'documentation'));
+        imageUpload.addEventListener('change', (e) => handleImageUpload(e, 'screenshot'));
         takeDocScreenshotAreaButton.addEventListener('click', () => captureScreenArea('documentation'));
         takeNoteScreenshotAreaButton.addEventListener('click', () => captureScreenArea('screenshot'));
         captureButton.addEventListener('click', captureImage);
