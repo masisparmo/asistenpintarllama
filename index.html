@@ -91,7 +91,7 @@
                         <span>Mulai Rekam Suara</span>
                     </button>
                     <div id="recording-indicator" class="text-center text-sm font-mono text-slate-700 hidden">
-                        <span id="timer">00:00</span> | <span id="size-estimator">0.0 MB</span>
+                        <span id="timer">00:00</span>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-2">
                         <button id="takeScreenshotButton" class="flex-1 bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700">Ambil Foto</button>
@@ -187,7 +187,7 @@
     </div>
     
     <script type="module">
-        // Ganti dengan URL Vercel Anda yang terakhir berhasil
+        // Ganti dengan URL Cloud Run Anda
         const BACKEND_URL = 'https://asisten-pintar-service-303231084056.asia-southeast1.run.app'; 
 
         // --- DOM Elements ---
@@ -213,7 +213,6 @@
         const eventForm = document.getElementById('event-form');
         const recordingIndicator = document.getElementById('recording-indicator');
         const timerSpan = document.getElementById('timer');
-        const sizeEstimatorSpan = document.getElementById('size-estimator');
         const takeDocPhotoButton = document.getElementById('takeDocPhotoButton');
         const uploadDocPhotoInput = document.getElementById('uploadDocPhoto');
         const docPhotosPreview = document.getElementById('doc-photos-preview');
@@ -228,12 +227,18 @@
         const logWrapper = document.getElementById('logWrapper');
         
         // --- App State ---
-        let isRecording = false, mediaRecorder, fullTranscript = "", summaryText = "", activeStream, audioContext, audioChunks = [], timerInterval = null;
+        let mediaRecorder, fullTranscript = "", summaryText = "", activeStream, audioChunks = [], timerInterval = null;
         let transcriptEmpty = true;
         let documentationImages = [];
         let screenshotImages = [];
         let currentCameraCallback = null;
-        let recordedAudioBlob = null;
+        let allRecordedBlobs = [];
+        
+        // [PERBAIKAN] State baru untuk mode rekaman berkelanjutan
+        let isContinuousRecording = false;
+        let chunkCount = 0;
+        let chunkTimer = null;
+        const MAX_CHUNK_DURATION = 20 * 60 * 1000; // 20 menit dalam milidetik
 
         function saveState() {
             const state = {
@@ -332,54 +337,94 @@
             }
         }
         
-        function startTimer(mimeType) {
+        function startTimer() {
             recordingIndicator.classList.remove('hidden');
             let seconds = 0;
-            const bytesPerSecond = (mimeType && mimeType.includes('opus')) ? 16000 : 16000 * 2;
+            if(timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 seconds++;
                 const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
                 const secs = (seconds % 60).toString().padStart(2, '0');
                 timerSpan.textContent = `${minutes}:${secs}`;
-                const estimatedMB = (seconds * bytesPerSecond / (1024 * 1024));
-                sizeEstimatorSpan.textContent = `${estimatedMB.toFixed(2)} MB`;
-
-                if (estimatedMB >= 24 && isRecording) {
-                    handleRecordClick();
-                }
             }, 1000);
         }
 
         async function handleRecordClick() {
-            if (isRecording) {
-                if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+            if (isContinuousRecording) {
+                // Hentikan seluruh sesi rekaman
+                isContinuousRecording = false;
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+                clearTimeout(chunkTimer);
+                clearInterval(timerInterval);
+                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
+                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
+                statusSpan.textContent = 'Sesi rekaman dihentikan.';
+                log('Sesi rekaman berkelanjutan dihentikan oleh pengguna.', 'INFO');
             } else {
+                // Mulai sesi rekaman baru
                 const hasPermission = await ensurePermissions({audio: true});
                 if (!hasPermission) return;
 
-                recordedAudioBlob = null;
-                activeStream = await getAudioStream();
-                if (!activeStream) return;
-                isRecording = true;
-                audioChunks = [];
-                const options = { mimeType: 'audio/webm; codecs=opus' };
-                mediaRecorder = new MediaRecorder(activeStream, options);
-                mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
-                mediaRecorder.onstop = () => {
-                    isRecording = false;
-                    clearInterval(timerInterval);
-                    recordingIndicator.classList.add('hidden');
-                    if (activeStream) activeStream.getTracks().forEach(track => track.stop());
-                    recordedAudioBlob = new Blob(audioChunks, { type: options.mimeType });
-                    recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
-                    recordButton.classList.replace('bg-red-600', 'bg-blue-600');
-                    if (recordedAudioBlob.size > 0) transcribeAudio(recordedAudioBlob);
-                };
-                mediaRecorder.start();
-                startTimer(options.mimeType);
-                recordButton.innerHTML = `<span>Berhenti Rekam</span>`;
-                recordButton.classList.replace('bg-blue-600', 'bg-red-600');
+                isContinuousRecording = true;
+                chunkCount = 0;
+                allRecordedBlobs = [];
+                startNewChunk();
             }
+        }
+
+        async function startNewChunk() {
+            if (!isContinuousRecording) return;
+            
+            chunkCount++;
+            log(`Memulai rekaman bagian ke-${chunkCount}.`, 'INFO');
+            statusSpan.textContent = `Merekam Bagian ${chunkCount}...`;
+
+            activeStream = await getAudioStream();
+            if (!activeStream) {
+                isContinuousRecording = false;
+                return;
+            }
+
+            audioChunks = [];
+            const options = { mimeType: 'audio/webm; codecs=opus' };
+            mediaRecorder = new MediaRecorder(activeStream, options);
+            
+            mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
+            
+            mediaRecorder.onstop = async () => {
+                if (activeStream) activeStream.getTracks().forEach(track => track.stop());
+                
+                const recordedBlob = new Blob(audioChunks, { type: options.mimeType });
+                allRecordedBlobs.push(recordedBlob);
+
+                if (recordedBlob.size > 0) {
+                    statusSpan.textContent = `Mentranskripsi Bagian ${chunkCount}...`;
+                    log(`Mengirim bagian ke-${chunkCount} untuk transkripsi.`, 'INFO');
+                    await transcribeAudio(recordedBlob, chunkCount);
+                }
+
+                // Jika mode berkelanjutan masih aktif, mulai bagian baru
+                if (isContinuousRecording) {
+                    startNewChunk();
+                }
+            };
+
+            mediaRecorder.start();
+            
+            // UI update
+            recordButton.innerHTML = `<span>Hentikan Sesi Rekaman</span>`;
+            recordButton.classList.replace('bg-blue-600', 'bg-red-600');
+            startTimer();
+
+            // Atur timer untuk menghentikan chunk ini secara otomatis
+            chunkTimer = setTimeout(() => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    log(`Batas waktu 20 menit untuk bagian ke-${chunkCount} tercapai. Menghentikan...`, 'INFO');
+                    mediaRecorder.stop();
+                }
+            }, MAX_CHUNK_DURATION);
         }
 
         async function handleApiCall(url, options, context) {
@@ -403,17 +448,17 @@
             }
         }
 
-        async function transcribeAudio(audioBlob) {
-            statusSpan.textContent = 'Mentranskripsi...';
+        async function transcribeAudio(audioBlob, partNumber) {
             statusLoader.classList.remove('hidden');
             const formData = new FormData();
-            formData.append('file', audioBlob, 'recording.webm');
+            formData.append('file', audioBlob, `recording_part_${partNumber}.webm`);
             try {
                 const result = await handleApiCall(`${BACKEND_URL}/api/transcribe`, { method: 'POST', body: formData }, 'Transcription');
                 if (result.error) throw new Error(result.error);
-                updateTranscript(result, "Suara");
-                statusSpan.textContent = 'Transkripsi berhasil!';
+                updateTranscript(result, `Suara (Bagian ${partNumber})`);
+                log(`Transkripsi bagian ke-${partNumber} berhasil.`, 'SUCCESS');
             } catch (error) {
+                 log(`Transkripsi bagian ke-${partNumber} gagal: ${error.message}`, 'ERROR');
             } finally {
                 statusLoader.classList.add('hidden');
             }
@@ -657,8 +702,9 @@
         }
 
         function downloadAudio() {
-            if (recordedAudioBlob) {
-                downloadAsFile(`${generateBaseFilename()}.webm`, recordedAudioBlob, 'audio/webm');
+            if (allRecordedBlobs.length > 0) {
+                const combinedBlob = new Blob(allRecordedBlobs, { type: 'audio/webm' });
+                downloadAsFile(`${generateBaseFilename()}_full.webm`, combinedBlob, 'audio/webm');
             } else {
                 alert('Tidak ada file suara yang direkam.');
             }
