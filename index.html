@@ -186,7 +186,6 @@
         </div>
     </div>
     
-    <!-- Modal Instruksi (BARU) -->
     <div id="instructionModal" class="fixed inset-0 z-50 items-center justify-center hidden flex modal-backdrop">
         <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
             <h3 class="text-lg font-bold text-slate-800 mb-3">Petunjuk Merekam Audio Sistem</h3>
@@ -201,7 +200,6 @@
     </div>
 
     <script type="module">
-        // Ganti dengan URL Cloud Run Anda
         const BACKEND_URL = 'https://asisten-pintar-service-303231084056.asia-southeast1.run.app'; 
 
         // --- DOM Elements ---
@@ -247,13 +245,189 @@
         let screenshotImages = [];
         let currentCameraCallback = null;
         let allRecordedBlobs = [];
-        
-        // State baru untuk mode rekaman berkelanjutan
         let isContinuousRecording = false;
         let chunkCount = 0;
         let chunkTimer = null;
-        const MAX_CHUNK_DURATION = 20 * 60 * 1000; // 20 menit dalam milidetik
+        const MAX_CHUNK_DURATION = 20 * 60 * 1000;
 
+        // --- FUNGSI UTAMA ---
+
+        function log(message, level = 'INFO') {
+            const timestamp = new Date().toLocaleTimeString();
+            let colorClass = level === 'SUCCESS' ? 'text-green-400' : level === 'ERROR' ? 'text-red-400' : level === 'WARN' ? 'text-yellow-400' : 'text-blue-400';
+            logContainer.innerHTML += `<p><span class="text-slate-500">${timestamp}</span> <span class="${colorClass}">[${level}]</span> ${message}</p>`;
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function showInstructionModalAndWait() {
+            return new Promise(resolve => {
+                const modal = document.getElementById('instructionModal');
+                const okButton = document.getElementById('instructionOkButton');
+                modal.classList.remove('hidden');
+                
+                const newOkButton = okButton.cloneNode(true);
+                okButton.parentNode.replaceChild(newOkButton, okButton);
+
+                newOkButton.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                    resolve();
+                });
+            });
+        }
+
+        async function ensureMicPermission() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(track => track.stop());
+                return true;
+            } catch (err) {
+                log(`Izin mikrofon ditolak: ${err.message}`, 'ERROR');
+                alert('Akses ke mikrofon Anda ditolak. Harap aktifkan izin mikrofon di pengaturan browser untuk menggunakan fitur ini.');
+                return false;
+            }
+        }
+
+        async function getAudioStream() {
+            log('Mencoba mendapatkan sumber audio...');
+            const source = document.querySelector('input[name="audioSource"]:checked').value;
+            
+            try {
+                if (source === 'mic') {
+                    return await navigator.mediaDevices.getUserMedia({ audio: true });
+                }
+                
+                if (source === 'speaker' || source === 'both') {
+                    await showInstructionModalAndWait();
+                    const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+
+                    if (source === 'speaker') {
+                        displayStream.getVideoTracks().forEach(track => track.stop());
+                        return displayStream;
+                    }
+
+                    if (source === 'both') {
+                         const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                         const audioContext = new AudioContext();
+                         const destination = audioContext.createMediaStreamDestination();
+                         if (micStream.getAudioTracks().length > 0) {
+                            audioContext.createMediaStreamSource(micStream).connect(destination);
+                         }
+                         if (displayStream.getAudioTracks().length > 0) {
+                            audioContext.createMediaStreamSource(displayStream).connect(destination);
+                         }
+                         return destination.stream;
+                    }
+                }
+            } catch (err) {
+                log(`Gagal mendapatkan sumber audio: ${err.message}`, 'ERROR');
+                return null;
+            }
+        }
+
+        async function handleRecordClick() {
+            if (isContinuousRecording) {
+                isContinuousRecording = false;
+                if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+                clearTimeout(chunkTimer);
+                clearInterval(timerInterval);
+                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
+                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
+                statusSpan.textContent = 'Sesi rekaman dihentikan.';
+                log('Sesi rekaman dihentikan oleh pengguna.', 'INFO');
+            } else {
+                const source = document.querySelector('input[name="audioSource"]:checked').value;
+                if (source === 'mic' || source === 'both') {
+                    const hasPermission = await ensureMicPermission();
+                    if (!hasPermission) return;
+                }
+                
+                isContinuousRecording = true;
+                chunkCount = 0;
+                allRecordedBlobs = [];
+                startNewChunk();
+            }
+        }
+
+        async function startNewChunk() {
+            if (!isContinuousRecording) return;
+            
+            chunkCount++;
+            log(`Memulai rekaman bagian ke-${chunkCount}.`, 'INFO');
+            statusSpan.textContent = `Merekam Bagian ${chunkCount}...`;
+
+            activeStream = await getAudioStream();
+            
+            if (!activeStream || activeStream.getAudioTracks().length === 0) {
+                log('Gagal mendapatkan sumber audio yang valid.', 'ERROR');
+                statusSpan.textContent = 'Gagal memulai rekaman.';
+                
+                const source = document.querySelector('input[name="audioSource"]:checked').value;
+                let errorMessage;
+                if (source === 'speaker' || source === 'both') {
+                    errorMessage = 'Gagal merekam audio sistem. Pastikan Anda memilih layar/tab DAN mencentang "Bagikan audio" pada dialog izin browser.';
+                } else {
+                    errorMessage = 'Gagal merekam dari mikrofon. Pastikan mikrofon terhubung dan telah diizinkan.';
+                }
+                alert(errorMessage);
+                
+                isContinuousRecording = false;
+                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
+                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
+                return;
+            }
+
+            audioChunks = [];
+            
+            try {
+                mediaRecorder = new MediaRecorder(activeStream);
+            } catch (error) {
+                log(`Gagal membuat MediaRecorder: ${error.message}`, 'ERROR');
+                statusSpan.textContent = 'Browser tidak mendukung perekaman.';
+                isContinuousRecording = false;
+                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
+                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
+                return;
+            }
+
+            mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
+            
+            mediaRecorder.onstop = async () => {
+                if (activeStream) activeStream.getTracks().forEach(track => track.stop());
+                
+                if (audioChunks.length > 0) {
+                    const recordedBlob = new Blob(audioChunks, { type: audioChunks[0].type || 'audio/webm' });
+                    allRecordedBlobs.push(recordedBlob);
+                    if (recordedBlob.size > 0) {
+                        statusSpan.textContent = `Mentranskripsi Bagian ${chunkCount}...`;
+                        log(`Mengirim bagian ke-${chunkCount} untuk transkripsi.`, 'INFO');
+                        await transcribeAudio(recordedBlob, chunkCount);
+                    }
+                }
+                if (isContinuousRecording) startNewChunk();
+            };
+            
+            try {
+                mediaRecorder.start();
+                recordButton.innerHTML = `<span>Hentikan Sesi Rekaman</span>`;
+                recordButton.classList.replace('bg-blue-600', 'bg-red-600');
+                startTimer();
+                chunkTimer = setTimeout(() => {
+                    if (mediaRecorder && mediaRecorder.state === 'recording') {
+                        log(`Batas waktu 20 menit untuk bagian ke-${chunkCount} tercapai. Menghentikan...`, 'INFO');
+                        mediaRecorder.stop();
+                    }
+                }, MAX_CHUNK_DURATION);
+            } catch (error) {
+                log(`Error saat mediaRecorder.start(): ${error.message}`, 'ERROR');
+                statusSpan.textContent = 'Gagal memulai perekam.';
+                isContinuousRecording = false;
+                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
+                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
+            }
+        }
+
+        // --- Sisa fungsi-fungsi lainnya ---
+        
         function saveState() {
             const state = {
                 fullTranscript,
@@ -297,199 +471,6 @@
                 u8arr[n] = bstr.charCodeAt(n);
             }
             return new File([u8arr], filename, {type:mime});
-        }
-
-        function log(message, level = 'INFO') {
-            const timestamp = new Date().toLocaleTimeString();
-            let colorClass = level === 'SUCCESS' ? 'text-green-400' : level === 'ERROR' ? 'text-red-400' : level === 'WARN' ? 'text-yellow-400' : 'text-blue-400';
-            logContainer.innerHTML += `<p><span class="text-slate-500">${timestamp}</span> <span class="${colorClass}">[${level}]</span> ${message}</p>`;
-            logContainer.scrollTop = logContainer.scrollHeight;
-        }
-        
-        // --- FUNGSI BARU UNTUK MODAL INSTRUKSI ---
-        function showInstructionModalAndWait() {
-            return new Promise(resolve => {
-                const modal = document.getElementById('instructionModal');
-                const okButton = document.getElementById('instructionOkButton');
-                modal.classList.remove('hidden');
-                
-                // Hapus event listener lama jika ada untuk mencegah duplikasi
-                const newOkButton = okButton.cloneNode(true);
-                okButton.parentNode.replaceChild(newOkButton, okButton);
-
-                newOkButton.addEventListener('click', () => {
-                    modal.classList.add('hidden');
-                    resolve(); // Resolve promise saat tombol diklik
-                });
-            });
-        }
-
-        async function ensurePermissions(constraints) {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                stream.getTracks().forEach(track => track.stop());
-                return true;
-            } catch (err) {
-                log(`Permission denied for ${JSON.stringify(constraints)}: ${err.message}`, 'ERROR');
-                alert('Akses mikrofon ditolak. Harap aktifkan izin di pengaturan browser Anda untuk menggunakan fitur ini.');
-                return false;
-            }
-        }
-
-        // --- FUNGSI getAudioStream DIPERBARUI ---
-        async function getAudioStream() {
-            log('Attempting to get audio stream...');
-            const source = document.querySelector('input[name="audioSource"]:checked').value;
-            let micStream, displayStream;
-
-            try {
-                if (source === 'mic') {
-                    return await navigator.mediaDevices.getUserMedia({ audio: true });
-                }
-                
-                if (source === 'speaker' || source === 'both') {
-                    // Tampilkan modal instruksi SEBELUM meminta izin
-                    await showInstructionModalAndWait();
-                    displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-
-                    if (source === 'speaker') {
-                        // Hentikan track video karena kita hanya butuh audio
-                        displayStream.getVideoTracks().forEach(track => track.stop());
-                        return displayStream;
-                    }
-
-                    // Logika untuk 'both'
-                    if (source === 'both') {
-                         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                         const combinedAudioContext = new AudioContext();
-                         const destination = combinedAudioContext.createMediaStreamDestination();
-                         if (micStream && micStream.getAudioTracks().length > 0) {
-                            const micSource = combinedAudioContext.createMediaStreamSource(micStream);
-                            micSource.connect(destination);
-                         }
-                         if (displayStream && displayStream.getAudioTracks().length > 0) {
-                            const displaySource = combinedAudioContext.createMediaStreamSource(displayStream);
-                            displaySource.connect(destination);
-                         }
-                         // Kita tidak perlu video, jadi kita hanya ambil audio gabungan
-                         return destination.stream;
-                    }
-                }
-            } catch (err) {
-                log(`Error getting audio stream: ${err.message}`, 'ERROR');
-                // Error ini biasanya terjadi jika pengguna menutup dialog izin
-                return null;
-            }
-        }
-        
-        function startTimer() {
-            recordingIndicator.classList.remove('hidden');
-            let seconds = 0;
-            if(timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                seconds++;
-                const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
-                const secs = (seconds % 60).toString().padStart(2, '0');
-                timerSpan.textContent = `${minutes}:${secs}`;
-            }, 1000);
-        }
-
-        async function handleRecordClick() {
-            if (isContinuousRecording) {
-                isContinuousRecording = false;
-                if (mediaRecorder && mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
-                }
-                clearTimeout(chunkTimer);
-                clearInterval(timerInterval);
-                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
-                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
-                statusSpan.textContent = 'Sesi rekaman dihentikan.';
-                log('Sesi rekaman berkelanjutan dihentikan oleh pengguna.', 'INFO');
-            } else {
-                // Untuk sumber mic, kita cek izinnya di awal
-                const source = document.querySelector('input[name="audioSource"]:checked').value;
-                if (source === 'mic' || source === 'both') {
-                    const hasPermission = await ensurePermissions({audio: true});
-                    if (!hasPermission) return;
-                }
-                
-                isContinuousRecording = true;
-                chunkCount = 0;
-                allRecordedBlobs = [];
-                startNewChunk();
-            }
-        }
-
-        async function startNewChunk() {
-            if (!isContinuousRecording) return;
-            
-            chunkCount++;
-            log(`Memulai rekaman bagian ke-${chunkCount}.`, 'INFO');
-            statusSpan.textContent = `Merekam Bagian ${chunkCount}...`;
-
-            activeStream = await getAudioStream();
-            
-            if (!activeStream || activeStream.getAudioTracks().length === 0) {
-                log('Gagal mendapatkan sumber audio yang valid. Mungkin pengguna menolak izin atau sumber (speaker) tidak tersedia.', 'ERROR');
-                statusSpan.textContent = 'Gagal memulai rekaman.';
-                isContinuousRecording = false;
-                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
-                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
-                return;
-            }
-
-            audioChunks = [];
-            
-            try {
-                mediaRecorder = new MediaRecorder(activeStream);
-            } catch (error) {
-                log(`Gagal membuat MediaRecorder: ${error.message}`, 'ERROR');
-                statusSpan.textContent = 'Browser tidak mendukung perekaman.';
-                isContinuousRecording = false;
-                 recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
-                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
-                return;
-            }
-
-            mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
-            
-            mediaRecorder.onstop = async () => {
-                if (activeStream) activeStream.getTracks().forEach(track => track.stop());
-                
-                if (audioChunks.length > 0) {
-                    const recordedBlob = new Blob(audioChunks, { type: audioChunks[0].type || 'audio/webm' });
-                    allRecordedBlobs.push(recordedBlob);
-                    if (recordedBlob.size > 0) {
-                        statusSpan.textContent = `Mentranskripsi Bagian ${chunkCount}...`;
-                        log(`Mengirim bagian ke-${chunkCount} untuk transkripsi.`, 'INFO');
-                        await transcribeAudio(recordedBlob, chunkCount);
-                    }
-                }
-
-                if (isContinuousRecording) {
-                    startNewChunk();
-                }
-            };
-            
-            try {
-                mediaRecorder.start();
-                recordButton.innerHTML = `<span>Hentikan Sesi Rekaman</span>`;
-                recordButton.classList.replace('bg-blue-600', 'bg-red-600');
-                startTimer();
-                chunkTimer = setTimeout(() => {
-                    if (mediaRecorder && mediaRecorder.state === 'recording') {
-                        log(`Batas waktu 20 menit untuk bagian ke-${chunkCount} tercapai. Menghentikan...`, 'INFO');
-                        mediaRecorder.stop();
-                    }
-                }, MAX_CHUNK_DURATION);
-            } catch (error) {
-                log(`Error saat menjalankan mediaRecorder.start(): ${error.message}`, 'ERROR');
-                statusSpan.textContent = 'Gagal memulai perekam.';
-                isContinuousRecording = false;
-                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
-                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
-            }
         }
 
         async function handleApiCall(url, options, context) {
@@ -634,7 +615,7 @@
         }
 
         async function openCamera(callback) {
-            const hasPermission = await ensurePermissions({ video: true });
+            const hasPermission = await ensureMicPermission({ video: true });
             if (!hasPermission) return;
 
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
@@ -888,6 +869,7 @@
             log('Tanggal dan jam saat ini telah diatur.', 'INFO');
         }
 
+        // --- EVENT LISTENERS ---
         newSessionButton.addEventListener('click', startNewSession);
         recordButton.addEventListener('click', handleRecordClick);
         addNoteButton.addEventListener('click', handleManualNote);
@@ -912,7 +894,7 @@
         downloadAudioBtn.addEventListener('click', downloadAudio);
         downloadPhotosBtn.addEventListener('click', downloadPhotosAsZip);
         summarizeButton.addEventListener('click', summarizeTranscript);
-        toggleLogButton.addEventListener('click', () => { logWrapper.classList.toggle('hidden'); });
+        toggleLogButton.addEventListener('click', () => logWrapper.classList.toggle('hidden'));
         copyLogButton.addEventListener('click', () => {
             navigator.clipboard.writeText(logContainer.innerText);
             copyLogButton.textContent = 'Copied!';
@@ -932,7 +914,6 @@
                 takeNoteScreenshotAreaButton.classList.add('hidden');
             }
         });
-
     </script>
 </body>
 </html>
