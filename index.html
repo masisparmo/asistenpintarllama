@@ -18,7 +18,7 @@
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        #cameraModal { background-color: rgba(0,0,0,0.6); }
+        .modal-backdrop { background-color: rgba(0,0,0,0.6); }
         .btn-spinner { border-top-color: white !important; width: 20px !important; height: 20px !important; }
         .photo-container { position: relative; }
         .delete-photo-btn {
@@ -179,13 +179,27 @@
     </button>
 
     <!-- Modals -->
-    <div id="cameraModal" class="fixed inset-0 z-50 items-center justify-center hidden flex">
+    <div id="cameraModal" class="fixed inset-0 z-50 items-center justify-center hidden flex modal-backdrop">
         <div class="bg-white p-4 rounded-lg shadow-xl">
             <video id="camera-stream" class="rounded-md" autoplay playsinline></video>
             <button id="captureButton" class="w-full mt-4 bg-red-600 text-white font-bold py-2 rounded-lg">Ambil Gambar</button>
         </div>
     </div>
     
+    <!-- Modal Instruksi (BARU) -->
+    <div id="instructionModal" class="fixed inset-0 z-50 items-center justify-center hidden flex modal-backdrop">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
+            <h3 class="text-lg font-bold text-slate-800 mb-3">Petunjuk Merekam Audio Sistem</h3>
+            <p class="text-sm text-slate-600 mb-4">Untuk merekam suara dari speaker, Anda perlu memberikan izin berbagi layar. Browser Anda akan meminta izin ini.</p>
+            <ol class="list-decimal list-inside text-sm space-y-2 mb-5">
+                <li>Pilih tab, jendela, atau layar yang suaranya ingin direkam.</li>
+                <li class="font-semibold">PENTING: Centang kotak "Share system audio" atau "Bagikan audio tab" pada dialog izin.</li>
+                <li>Klik tombol "Share" atau "Bagikan".</li>
+            </ol>
+            <button id="instructionOkButton" class="w-full bg-indigo-600 text-white font-semibold py-2 rounded-lg hover:bg-indigo-700">Saya Mengerti</button>
+        </div>
+    </div>
+
     <script type="module">
         // Ganti dengan URL Cloud Run Anda
         const BACKEND_URL = 'https://asisten-pintar-service-303231084056.asia-southeast1.run.app'; 
@@ -291,6 +305,24 @@
             logContainer.innerHTML += `<p><span class="text-slate-500">${timestamp}</span> <span class="${colorClass}">[${level}]</span> ${message}</p>`;
             logContainer.scrollTop = logContainer.scrollHeight;
         }
+        
+        // --- FUNGSI BARU UNTUK MODAL INSTRUKSI ---
+        function showInstructionModalAndWait() {
+            return new Promise(resolve => {
+                const modal = document.getElementById('instructionModal');
+                const okButton = document.getElementById('instructionOkButton');
+                modal.classList.remove('hidden');
+                
+                // Hapus event listener lama jika ada untuk mencegah duplikasi
+                const newOkButton = okButton.cloneNode(true);
+                okButton.parentNode.replaceChild(newOkButton, okButton);
+
+                newOkButton.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                    resolve(); // Resolve promise saat tombol diklik
+                });
+            });
+        }
 
         async function ensurePermissions(constraints) {
             try {
@@ -299,40 +331,53 @@
                 return true;
             } catch (err) {
                 log(`Permission denied for ${JSON.stringify(constraints)}: ${err.message}`, 'ERROR');
-                alert('Akses ditolak. Harap aktifkan izin di pengaturan browser Anda untuk menggunakan fitur ini.\n\nBiasanya dengan mengklik ikon gembok di sebelah alamat URL.');
+                alert('Akses mikrofon ditolak. Harap aktifkan izin di pengaturan browser Anda untuk menggunakan fitur ini.');
                 return false;
             }
         }
 
+        // --- FUNGSI getAudioStream DIPERBARUI ---
         async function getAudioStream() {
             log('Attempting to get audio stream...');
             const source = document.querySelector('input[name="audioSource"]:checked').value;
             let micStream, displayStream;
-            try {
-                if (source === 'mic' || source === 'both') micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                if (source === 'speaker' || source === 'both') displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
 
-                if (source === 'mic') return micStream;
-                if (source === 'speaker') {
-                    displayStream.getVideoTracks().forEach(track => track.stop());
-                    return displayStream;
+            try {
+                if (source === 'mic') {
+                    return await navigator.mediaDevices.getUserMedia({ audio: true });
                 }
-                if (source === 'both') {
-                    const combinedAudioContext = new AudioContext();
-                    const destination = combinedAudioContext.createMediaStreamDestination();
-                    if (micStream && micStream.getAudioTracks().length > 0) {
-                        const micSource = combinedAudioContext.createMediaStreamSource(micStream);
-                        micSource.connect(destination);
+                
+                if (source === 'speaker' || source === 'both') {
+                    // Tampilkan modal instruksi SEBELUM meminta izin
+                    await showInstructionModalAndWait();
+                    displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+
+                    if (source === 'speaker') {
+                        // Hentikan track video karena kita hanya butuh audio
+                        displayStream.getVideoTracks().forEach(track => track.stop());
+                        return displayStream;
                     }
-                    if (displayStream && displayStream.getAudioTracks().length > 0) {
-                        const displaySource = combinedAudioContext.createMediaStreamSource(displayStream);
-                        displaySource.connect(destination);
+
+                    // Logika untuk 'both'
+                    if (source === 'both') {
+                         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                         const combinedAudioContext = new AudioContext();
+                         const destination = combinedAudioContext.createMediaStreamDestination();
+                         if (micStream && micStream.getAudioTracks().length > 0) {
+                            const micSource = combinedAudioContext.createMediaStreamSource(micStream);
+                            micSource.connect(destination);
+                         }
+                         if (displayStream && displayStream.getAudioTracks().length > 0) {
+                            const displaySource = combinedAudioContext.createMediaStreamSource(displayStream);
+                            displaySource.connect(destination);
+                         }
+                         // Kita tidak perlu video, jadi kita hanya ambil audio gabungan
+                         return destination.stream;
                     }
-                    const videoTracks = displayStream ? displayStream.getVideoTracks() : [];
-                    return new MediaStream([...destination.stream.getAudioTracks(), ...videoTracks]);
                 }
             } catch (err) {
                 log(`Error getting audio stream: ${err.message}`, 'ERROR');
+                // Error ini biasanya terjadi jika pengguna menutup dialog izin
                 return null;
             }
         }
@@ -351,7 +396,6 @@
 
         async function handleRecordClick() {
             if (isContinuousRecording) {
-                // Hentikan seluruh sesi rekaman
                 isContinuousRecording = false;
                 if (mediaRecorder && mediaRecorder.state === 'recording') {
                     mediaRecorder.stop();
@@ -363,10 +407,13 @@
                 statusSpan.textContent = 'Sesi rekaman dihentikan.';
                 log('Sesi rekaman berkelanjutan dihentikan oleh pengguna.', 'INFO');
             } else {
-                // Mulai sesi rekaman baru
-                const hasPermission = await ensurePermissions({audio: true});
-                if (!hasPermission) return;
-
+                // Untuk sumber mic, kita cek izinnya di awal
+                const source = document.querySelector('input[name="audioSource"]:checked').value;
+                if (source === 'mic' || source === 'both') {
+                    const hasPermission = await ensurePermissions({audio: true});
+                    if (!hasPermission) return;
+                }
+                
                 isContinuousRecording = true;
                 chunkCount = 0;
                 allRecordedBlobs = [];
@@ -374,7 +421,6 @@
             }
         }
 
-        // --- FUNGSI YANG DIPERBAIKI ---
         async function startNewChunk() {
             if (!isContinuousRecording) return;
             
@@ -384,26 +430,19 @@
 
             activeStream = await getAudioStream();
             
-            // Validasi Stream: Pastikan stream ada dan memiliki track audio
             if (!activeStream || activeStream.getAudioTracks().length === 0) {
                 log('Gagal mendapatkan sumber audio yang valid. Mungkin pengguna menolak izin atau sumber (speaker) tidak tersedia.', 'ERROR');
                 statusSpan.textContent = 'Gagal memulai rekaman.';
-                alert('Tidak dapat memulai rekaman. Pastikan mikrofon terhubung atau sumber audio sistem tersedia dan diizinkan.');
-                isContinuousRecording = false; // Hentikan loop rekaman
-                
-                // Reset UI Tombol
+                isContinuousRecording = false;
                 recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
                 recordButton.classList.replace('bg-red-600', 'bg-blue-600');
-                
-                return; // Hentikan eksekusi fungsi
+                return;
             }
 
             audioChunks = [];
             
-            // --- PERUBAIKAN DIMULAI ---
-            // 1. Hapus opsi format, biarkan browser memilih yang terbaik
             try {
-                mediaRecorder = new MediaRecorder(activeStream); // Tidak ada argumen kedua
+                mediaRecorder = new MediaRecorder(activeStream);
             } catch (error) {
                 log(`Gagal membuat MediaRecorder: ${error.message}`, 'ERROR');
                 statusSpan.textContent = 'Browser tidak mendukung perekaman.';
@@ -412,55 +451,42 @@
                 recordButton.classList.replace('bg-red-600', 'bg-blue-600');
                 return;
             }
-            // --- PERUBAIKAN SELESAI ---
 
             mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
             
             mediaRecorder.onstop = async () => {
                 if (activeStream) activeStream.getTracks().forEach(track => track.stop());
                 
-                // --- PERUBAIKAN DIMULAI ---
-                // 2. Buat Blob dengan tipe yang dideteksi otomatis dari chunk pertama
                 if (audioChunks.length > 0) {
                     const recordedBlob = new Blob(audioChunks, { type: audioChunks[0].type || 'audio/webm' });
                     allRecordedBlobs.push(recordedBlob);
-
                     if (recordedBlob.size > 0) {
                         statusSpan.textContent = `Mentranskripsi Bagian ${chunkCount}...`;
                         log(`Mengirim bagian ke-${chunkCount} untuk transkripsi.`, 'INFO');
                         await transcribeAudio(recordedBlob, chunkCount);
                     }
                 }
-                // --- PERUBAIKAN SELESAI ---
 
                 if (isContinuousRecording) {
                     startNewChunk();
                 }
             };
             
-            // Bungkus dengan try...catch untuk menangani error saat start
             try {
                 mediaRecorder.start();
-                
-                // UI update hanya jika start berhasil
                 recordButton.innerHTML = `<span>Hentikan Sesi Rekaman</span>`;
                 recordButton.classList.replace('bg-blue-600', 'bg-red-600');
                 startTimer();
-
-                // Atur timer untuk menghentikan chunk ini secara otomatis
                 chunkTimer = setTimeout(() => {
                     if (mediaRecorder && mediaRecorder.state === 'recording') {
                         log(`Batas waktu 20 menit untuk bagian ke-${chunkCount} tercapai. Menghentikan...`, 'INFO');
                         mediaRecorder.stop();
                     }
                 }, MAX_CHUNK_DURATION);
-
             } catch (error) {
                 log(`Error saat menjalankan mediaRecorder.start(): ${error.message}`, 'ERROR');
                 statusSpan.textContent = 'Gagal memulai perekam.';
-                isContinuousRecording = false; // Hentikan loop
-                
-                // Reset UI Tombol
+                isContinuousRecording = false;
                 recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
                 recordButton.classList.replace('bg-red-600', 'bg-blue-600');
             }
@@ -641,7 +667,8 @@
                 return;
             }
             try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                await showInstructionModalAndWait();
+                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
                 const videoTrack = stream.getVideoTracks()[0];
                 const imageCapture = new ImageCapture(videoTrack);
                 const frame = await imageCapture.grabFrame();
