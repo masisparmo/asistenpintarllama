@@ -374,6 +374,7 @@
             }
         }
 
+        // --- FUNGSI YANG DIPERBAIKI ---
         async function startNewChunk() {
             if (!isContinuousRecording) return;
             
@@ -382,13 +383,33 @@
             statusSpan.textContent = `Merekam Bagian ${chunkCount}...`;
 
             activeStream = await getAudioStream();
-            if (!activeStream) {
-                isContinuousRecording = false;
-                return;
+            
+            // --- PERUBAIKAN DIMULAI ---
+            // 1. Validasi Stream: Pastikan stream ada dan memiliki track audio
+            if (!activeStream || activeStream.getAudioTracks().length === 0) {
+                log('Gagal mendapatkan sumber audio yang valid. Mungkin pengguna menolak izin atau sumber (speaker) tidak tersedia.', 'ERROR');
+                statusSpan.textContent = 'Gagal memulai rekaman.';
+                alert('Tidak dapat memulai rekaman. Pastikan mikrofon terhubung atau sumber audio sistem tersedia dan diizinkan.');
+                isContinuousRecording = false; // Hentikan loop rekaman
+                
+                // Reset UI Tombol
+                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
+                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
+                
+                return; // Hentikan eksekusi fungsi
             }
+            // --- PERUBAIKAN SELESAI ---
 
             audioChunks = [];
             const options = { mimeType: 'audio/webm; codecs=opus' };
+            
+            // Cek apakah tipe MIME didukung (praktik terbaik)
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                log(`Tipe MIME ${options.mimeType} tidak didukung.`, 'ERROR');
+                // Anda bisa mencoba tipe lain di sini jika perlu
+                return;
+            }
+
             mediaRecorder = new MediaRecorder(activeStream, options);
             
             mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
@@ -405,26 +426,39 @@
                     await transcribeAudio(recordedBlob, chunkCount);
                 }
 
-                // Jika mode berkelanjutan masih aktif, mulai bagian baru
                 if (isContinuousRecording) {
                     startNewChunk();
                 }
             };
-
-            mediaRecorder.start();
             
-            // UI update
-            recordButton.innerHTML = `<span>Hentikan Sesi Rekaman</span>`;
-            recordButton.classList.replace('bg-blue-600', 'bg-red-600');
-            startTimer();
+            // --- PERUBAIKAN DIMULAI ---
+            // 2. Bungkus dengan try...catch untuk menangani error saat start
+            try {
+                mediaRecorder.start();
+                
+                // UI update hanya jika start berhasil
+                recordButton.innerHTML = `<span>Hentikan Sesi Rekaman</span>`;
+                recordButton.classList.replace('bg-blue-600', 'bg-red-600');
+                startTimer();
 
-            // Atur timer untuk menghentikan chunk ini secara otomatis
-            chunkTimer = setTimeout(() => {
-                if (mediaRecorder && mediaRecorder.state === 'recording') {
-                    log(`Batas waktu 20 menit untuk bagian ke-${chunkCount} tercapai. Menghentikan...`, 'INFO');
-                    mediaRecorder.stop();
-                }
-            }, MAX_CHUNK_DURATION);
+                // Atur timer untuk menghentikan chunk ini secara otomatis
+                chunkTimer = setTimeout(() => {
+                    if (mediaRecorder && mediaRecorder.state === 'recording') {
+                        log(`Batas waktu 20 menit untuk bagian ke-${chunkCount} tercapai. Menghentikan...`, 'INFO');
+                        mediaRecorder.stop();
+                    }
+                }, MAX_CHUNK_DURATION);
+
+            } catch (error) {
+                log(`Error saat menjalankan mediaRecorder.start(): ${error.message}`, 'ERROR');
+                statusSpan.textContent = 'Gagal memulai perekam.';
+                isContinuousRecording = false; // Hentikan loop
+                
+                // Reset UI Tombol
+                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
+                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
+            }
+            // --- PERUBAIKAN SELESAI ---
         }
 
         async function handleApiCall(url, options, context) {
