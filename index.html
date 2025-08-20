@@ -384,8 +384,7 @@
 
             activeStream = await getAudioStream();
             
-            // --- PERUBAIKAN DIMULAI ---
-            // 1. Validasi Stream: Pastikan stream ada dan memiliki track audio
+            // Validasi Stream: Pastikan stream ada dan memiliki track audio
             if (!activeStream || activeStream.getAudioTracks().length === 0) {
                 log('Gagal mendapatkan sumber audio yang valid. Mungkin pengguna menolak izin atau sumber (speaker) tidak tersedia.', 'ERROR');
                 statusSpan.textContent = 'Gagal memulai rekaman.';
@@ -398,41 +397,48 @@
                 
                 return; // Hentikan eksekusi fungsi
             }
-            // --- PERUBAIKAN SELESAI ---
 
             audioChunks = [];
-            const options = { mimeType: 'audio/webm; codecs=opus' };
             
-            // Cek apakah tipe MIME didukung (praktik terbaik)
-            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                log(`Tipe MIME ${options.mimeType} tidak didukung.`, 'ERROR');
-                // Anda bisa mencoba tipe lain di sini jika perlu
+            // --- PERUBAIKAN DIMULAI ---
+            // 1. Hapus opsi format, biarkan browser memilih yang terbaik
+            try {
+                mediaRecorder = new MediaRecorder(activeStream); // Tidak ada argumen kedua
+            } catch (error) {
+                log(`Gagal membuat MediaRecorder: ${error.message}`, 'ERROR');
+                statusSpan.textContent = 'Browser tidak mendukung perekaman.';
+                isContinuousRecording = false;
+                 recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
+                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
                 return;
             }
+            // --- PERUBAIKAN SELESAI ---
 
-            mediaRecorder = new MediaRecorder(activeStream, options);
-            
             mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
             
             mediaRecorder.onstop = async () => {
                 if (activeStream) activeStream.getTracks().forEach(track => track.stop());
                 
-                const recordedBlob = new Blob(audioChunks, { type: options.mimeType });
-                allRecordedBlobs.push(recordedBlob);
+                // --- PERUBAIKAN DIMULAI ---
+                // 2. Buat Blob dengan tipe yang dideteksi otomatis dari chunk pertama
+                if (audioChunks.length > 0) {
+                    const recordedBlob = new Blob(audioChunks, { type: audioChunks[0].type || 'audio/webm' });
+                    allRecordedBlobs.push(recordedBlob);
 
-                if (recordedBlob.size > 0) {
-                    statusSpan.textContent = `Mentranskripsi Bagian ${chunkCount}...`;
-                    log(`Mengirim bagian ke-${chunkCount} untuk transkripsi.`, 'INFO');
-                    await transcribeAudio(recordedBlob, chunkCount);
+                    if (recordedBlob.size > 0) {
+                        statusSpan.textContent = `Mentranskripsi Bagian ${chunkCount}...`;
+                        log(`Mengirim bagian ke-${chunkCount} untuk transkripsi.`, 'INFO');
+                        await transcribeAudio(recordedBlob, chunkCount);
+                    }
                 }
+                // --- PERUBAIKAN SELESAI ---
 
                 if (isContinuousRecording) {
                     startNewChunk();
                 }
             };
             
-            // --- PERUBAIKAN DIMULAI ---
-            // 2. Bungkus dengan try...catch untuk menangani error saat start
+            // Bungkus dengan try...catch untuk menangani error saat start
             try {
                 mediaRecorder.start();
                 
@@ -458,7 +464,6 @@
                 recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
                 recordButton.classList.replace('bg-red-600', 'bg-blue-600');
             }
-            // --- PERUBAIKAN SELESAI ---
         }
 
         async function handleApiCall(url, options, context) {
