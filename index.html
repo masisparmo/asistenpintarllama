@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asisten Pintar - Asisten Pencatat Notulen Powered by Ai</title>
+    <title>Asisten Pintar - Asisten Pencatat Notulen Powered by Llama</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,7 +48,7 @@
         
         <header class="text-center mb-8 relative">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Asisten Pintar</h1>
-            <p class="text-slate-600 mt-2">Asisten Pencatat Notulen Powered by Ai</p>
+            <p class="text-slate-600 mt-2">Asisten Pencatat Pintar Powered by Llama Ai</p>
             <div class="mt-4 flex justify-center items-center space-x-4 text-sm">
                 <a href="https://asistenpintarku.isparmo.com/about.html" target="_blank" class="font-semibold text-indigo-600 hover:underline">Tentang Aplikasi</a>
                 <span class="text-slate-400">|</span>
@@ -99,7 +99,6 @@
                             <label id="audioSourceBothLabel" class="flex items-center"><input type="radio" name="audioSource" value="both" class="mr-2"> Keduanya</label>
                         </div>
                         
-                        <!-- Peringatan untuk perekaman audio sistem -->
                         <div id="speakerWarning" class="warning-box hidden mt-3">
                             <div class="warning-text">
                                 <strong>⚠️ Penting untuk Perekaman Audio Sistem:</strong><br>
@@ -163,7 +162,7 @@
                 <div class="flex justify-center items-center gap-4 flex-wrap">
                     <button id="downloadTxt" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Simpan .txt</span></button>
                     <button id="downloadMd" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Simpan .md</span></button>
-                    <button id="downloadPdf" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Simpan .pdf</span></button>
+                    <button id="printButton" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Cetak Laporan (.pdf)</span></button>
                     <button id="downloadAudio" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Simpan Audio</span></button>
                     <button id="downloadPhotos" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Simpan Foto (.zip)</span></button>
                 </div>
@@ -201,7 +200,6 @@
         </svg>
     </button>
 
-    <!-- Modals -->
     <div id="cameraModal" class="fixed inset-0 z-50 items-center justify-center hidden flex modal-backdrop">
         <div class="bg-white p-4 rounded-lg shadow-xl">
             <video id="camera-stream" class="rounded-md" autoplay playsinline></video>
@@ -209,7 +207,6 @@
         </div>
     </div>
     
-    <!-- Modal Instruksi yang Diperbaiki -->
     <div id="instructionModal" class="fixed inset-0 z-50 items-center justify-center hidden flex modal-backdrop">
         <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
             <h3 class="text-lg font-bold text-slate-800 mb-3">🎤 Petunjuk Merekam Audio Sistem</h3>
@@ -262,7 +259,7 @@
         const screenshotPhotosPreview = document.getElementById('screenshot-photos-preview');
         const downloadTxtBtn = document.getElementById('downloadTxt');
         const downloadMdBtn = document.getElementById('downloadMd');
-        const downloadPdfBtn = document.getElementById('downloadPdf');
+        const printButton = document.getElementById('printButton');
         const downloadAudioBtn = document.getElementById('downloadAudio');
         const downloadPhotosBtn = document.getElementById('downloadPhotos');
         const speakerWarning = document.getElementById('speakerWarning');
@@ -340,13 +337,12 @@
                 const okButton = document.getElementById('instructionOkButton');
                 modal.classList.remove('hidden');
                 
-                // Hapus event listener lama jika ada untuk mencegah duplikasi
                 const newOkButton = okButton.cloneNode(true);
                 okButton.parentNode.replaceChild(newOkButton, okButton);
 
                 newOkButton.addEventListener('click', () => {
                     modal.classList.add('hidden');
-                    resolve(); // Resolve promise saat tombol diklik
+                    resolve();
                 });
             });
         }
@@ -362,8 +358,7 @@
                 return false;
             }
         }
-
-        // --- FUNGSI getAudioStream YANG DIPERBAIKI ---
+        
         async function getAudioStream() {
             log('Attempting to get audio stream...');
             const source = document.querySelector('input[name="audioSource"]:checked').value;
@@ -375,10 +370,8 @@
                 }
                 
                 if (source === 'speaker' || source === 'both') {
-                    // Tampilkan modal instruksi SEBELUM meminta izin
                     await showInstructionModalAndWait();
                     
-                    // Coba dapatkan display media dengan audio
                     try {
                         displayStream = await navigator.mediaDevices.getDisplayMedia({ 
                             video: true, 
@@ -389,7 +382,6 @@
                             }
                         });
                         
-                        // Periksa apakah audio track tersedia
                         const audioTracks = displayStream.getAudioTracks();
                         if (audioTracks.length === 0) {
                             log('Tidak ada audio track yang tersedia dari display media. Pastikan Anda mencentang "Share system audio".', 'ERROR');
@@ -400,12 +392,10 @@
                         log(`Audio track ditemukan: ${audioTracks.length} track(s)`, 'SUCCESS');
                         
                         if (source === 'speaker') {
-                            // Hentikan track video karena kita hanya butuh audio
                             displayStream.getVideoTracks().forEach(track => track.stop());
                             return displayStream;
                         }
 
-                        // Logika untuk 'both' - gabungkan mikrofon dan audio sistem
                         if (source === 'both') {
                             try {
                                 micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -424,13 +414,11 @@
                                     log('Audio sistem berhasil ditambahkan ke stream gabungan', 'SUCCESS');
                                 }
                                 
-                                // Hentikan video track dari display stream
                                 displayStream.getVideoTracks().forEach(track => track.stop());
                                 
                                 return destination.stream;
                             } catch (micError) {
                                 log(`Gagal mendapatkan mikrofon untuk mode 'both': ${micError.message}. Melanjutkan dengan audio sistem saja.`, 'WARNING');
-                                // Jika mikrofon gagal, lanjutkan dengan audio sistem saja
                                 displayStream.getVideoTracks().forEach(track => track.stop());
                                 return displayStream;
                             }
@@ -438,7 +426,6 @@
                     } catch (displayError) {
                         log(`Error getting display media: ${displayError.message}`, 'ERROR');
                         
-                        // Berikan pesan error yang lebih spesifik
                         if (displayError.name === 'NotAllowedError') {
                             throw new Error('Izin untuk berbagi layar ditolak. Silakan coba lagi dan pastikan memberikan izin serta mencentang opsi "Share system audio".');
                         } else if (displayError.name === 'NotFoundError') {
@@ -450,7 +437,6 @@
                 }
             } catch (err) {
                 log(`Error getting audio stream: ${err.message}`, 'ERROR');
-                // Tampilkan pesan error yang lebih user-friendly
                 statusSpan.textContent = 'Gagal mendapatkan sumber audio.';
                 alert(`Gagal merekam audio: ${err.message}\n\nTips:\n- Pastikan mencentang "Share system audio" saat memberikan izin\n- Pilih tab/jendela yang sedang memutar audio\n- Coba refresh halaman dan ulangi`);
                 return null;
@@ -482,7 +468,6 @@
                 statusSpan.textContent = 'Sesi rekaman dihentikan.';
                 log('Sesi rekaman berkelanjutan dihentikan oleh pengguna.', 'INFO');
             } else {
-                // Untuk sumber mic, kita cek izinnya di awal
                 const source = document.querySelector('input[name="audioSource"]:checked').value;
                 if (source === 'mic' || source === 'both') {
                     const hasPermission = await ensurePermissions({audio: true});
@@ -506,7 +491,7 @@
             activeStream = await getAudioStream();
             
             if (!activeStream || activeStream.getAudioTracks().length === 0) {
-                log('Gagal mendapatkan sumber audio yang valid. Mungkin pengguna menolak izin atau sumber (speaker) tidak tersedia', 'ERROR');
+                log('Gagal mendapatkan sumber audio yang valid.', 'ERROR');
                 statusSpan.textContent = 'Gagal memulai rekaman.';
                 isContinuousRecording = false;
                 recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
@@ -771,15 +756,15 @@
             let dateStr;
             if (dateInput) {
                 const [year, month, day] = dateInput.split('-');
-                dateStr = `${day}${month}${year}`;
+                dateStr = `${month}${day}${year}`;
             } else {
                 const today = new Date();
                 const day = String(today.getDate()).padStart(2, '0');
-                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
                 const year = today.getFullYear();
-                dateStr = `${day}${month}${year}`;
+                dateStr = `${month}${day}${year}`;
             }
-            return `${theme}_${name}_${dateStr}`;
+            return `${name}_${theme}_${dateStr}`;
         }
 
         function cleanMarkdownForTxt(markdown) {
@@ -815,30 +800,91 @@
         function downloadTxt() { downloadAsFile(`${generateBaseFilename()}.txt`, generateReportContent('txt'), 'text/plain;charset=utf-8;'); }
         function downloadMd() { downloadAsFile(`${generateBaseFilename()}.md`, generateReportContent('md'), 'text/markdown;charset=utf-8;'); }
         
-        async function downloadPdf() {
-            const button = downloadPdfBtn;
+        async function printReport() {
+            log('Generating print view...', 'INFO');
+            const button = document.getElementById('printButton');
             const originalText = button.querySelector('span').textContent;
             button.disabled = true;
-            button.querySelector('span').textContent = 'Membuat...';
-            const spinner = document.createElement('div');
-            spinner.className = 'loader btn-spinner';
-            button.prepend(spinner);
-            const filename = `${generateBaseFilename()}.pdf`;
+            button.querySelector('span').textContent = 'Mempersiapkan...';
+            
             try {
-                const response = await fetch(`${BACKEND_URL}/api/generate-pdf`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ reportContent: generateReportContent('md'), filename: filename })
-                });
-                if (!response.ok) throw new Error((await response.json()).error || 'Server error');
-                const blob = await response.blob();
-                downloadAsFile(filename, blob, 'application/pdf');
+                // Generate the filename which will become the document title
+                const filename = `${generateBaseFilename()}.pdf`;
+        
+                // Get the report content
+                const reportTitle = document.getElementById('meetingName').value || "Laporan Acara";
+                const summaryHtml = `<h1>Ringkasan</h1>${summaryOutput.innerHTML}`;
+                // Format the raw transcript text nicely inside a <pre> tag
+                const transcriptText = fullTranscript
+                    .replace(/\[.*?\]:\n/g, (match) => `<strong>${match.slice(0, -2)}</strong>\n`) // Make headers bold
+                    .replace(/---/g, '\n<hr>\n'); // Add horizontal rules
+        
+                const transcriptHtml = `<h2>Transkrip Lengkap</h2><pre style="white-space: pre-wrap; word-wrap: break-word;">${transcriptText}</pre>`;
+        
+                // Define styles for printing
+                const printStyles = `
+                    body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #333; }
+                    .container { width: 100%; margin: 0 auto; }
+                    h1, h2, h3 { page-break-after: avoid; }
+                    h1 { font-size: 24pt; border-bottom: 2px solid #eee; padding-bottom: 0.3em; margin-bottom: 0.5em;}
+                    h2 { font-size: 18pt; border-bottom: 1px solid #eee; padding-bottom: 0.2em; margin-bottom: 0.5em;}
+                    pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; page-break-inside: avoid; }
+                    ul, ol { page-break-inside: avoid; }
+                    @page {
+                        margin: 1in;
+                    }
+                `;
+        
+                // Create a hidden iframe
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'absolute';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                document.body.appendChild(iframe);
+        
+                const iframeDoc = iframe.contentWindow.document;
+        
+                // Write the complete HTML document into the iframe
+                iframeDoc.open();
+                iframeDoc.write(`
+                    <!DOCTYPE html>
+                    <html lang="id">
+                        <head>
+                            <meta charset="utf-8"/>
+                            <title>${filename}</title>
+                            <style>${printStyles}</style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <h1>${reportTitle}</h1>
+                                ${summaryHtml}
+                                ${transcriptHtml}
+                            </div>
+                        </body>
+                    </html>
+                `);
+                iframeDoc.close();
+                
+                // Trigger the print dialog on the iframe's content
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+        
+                // Clean up by removing the iframe
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 1000);
+
             } catch (error) {
-                log(`Failed to generate PDF: ${error.message}`, 'ERROR');
+                log(`Failed to prepare for printing: ${error.message}`, 'ERROR');
+                alert('Gagal mempersiapkan dokumen untuk dicetak.');
             } finally {
                 button.disabled = false;
                 button.querySelector('span').textContent = originalText;
-                button.removeChild(spinner);
+                const spinner = button.querySelector('.loader');
+                if (spinner) {
+                    button.removeChild(spinner);
+                }
             }
         }
 
@@ -974,6 +1020,7 @@
             });
         });
 
+        // --- ALL EVENT LISTENERS ---
         newSessionButton.addEventListener('click', startNewSession);
         recordButton.addEventListener('click', handleRecordClick);
         addNoteButton.addEventListener('click', handleManualNote);
@@ -994,7 +1041,7 @@
         captureButton.addEventListener('click', captureImage);
         downloadTxtBtn.addEventListener('click', downloadTxt);
         downloadMdBtn.addEventListener('click', downloadMd);
-        downloadPdfBtn.addEventListener('click', downloadPdf);
+        printButton.addEventListener('click', printReport);
         downloadAudioBtn.addEventListener('click', downloadAudio);
         downloadPhotosBtn.addEventListener('click', downloadPhotosAsZip);
         summarizeButton.addEventListener('click', summarizeTranscript);
@@ -1022,4 +1069,3 @@
     </script>
 </body>
 </html>
-
