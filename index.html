@@ -756,13 +756,13 @@
             let dateStr;
             if (dateInput) {
                 const [year, month, day] = dateInput.split('-');
-                dateStr = `${month}${day}${year}`;
+                dateStr = `${day}${month}${year}`;
             } else {
                 const today = new Date();
                 const day = String(today.getDate()).padStart(2, '0');
                 const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
                 const year = today.getFullYear();
-                dateStr = `${month}${day}${year}`;
+                dateStr = `${day}${month}${year}`;
             }
             return `${name}_${theme}_${dateStr}`;
         }
@@ -809,7 +809,7 @@
             
             try {
                 // Generate the filename which will become the document title
-                const filename = `${generateBaseFilename()}.pdf`;
+                const filename = `${generateBaseFilename()}`;
         
                 // Get the report content
                 const reportTitle = document.getElementById('meetingName').value || "Laporan Acara";
