@@ -113,8 +113,11 @@
                         <span>Mulai Rekam Suara</span>
                     </button>
                     <div id="recording-indicator" class="text-center text-sm font-mono text-slate-700 hidden">
-                        <span id="timer">00:00</span>
+                        <span>Durasi Sesi: </span><span id="timer">00:00</span>
                     </div>
+                    <!-- === PERUBAHAN DI SINI: Container untuk daftar audio chunk === -->
+                    <div id="audio-chunks-list" class="mt-2 space-y-2 text-sm"></div>
+                    <!-- === AKHIR PERUBAHAN === -->
                     <div class="flex flex-col sm:flex-row gap-2">
                         <button id="takeScreenshotButton" class="flex-1 bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700">Ambil Foto</button>
                         <button id="takeNoteScreenshotAreaButton" class="flex-1 bg-teal-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-teal-700">Ambil Screenshot</button>
@@ -163,7 +166,7 @@
                     <button id="downloadTxt" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Simpan .txt</span></button>
                     <button id="downloadMd" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Simpan .md</span></button>
                     <button id="printButton" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Cetak Laporan (.pdf)</span></button>
-                    <button id="downloadAudio" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Simpan Audio</span></button>
+                    <button id="downloadAudio" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Simpan Audio Lengkap</span></button>
                     <button id="downloadPhotos" class="bg-slate-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-slate-800 flex items-center justify-center space-x-2"><span>Simpan Foto (.zip)</span></button>
                 </div>
             </div>
@@ -263,10 +266,11 @@
         const downloadAudioBtn = document.getElementById('downloadAudio');
         const downloadPhotosBtn = document.getElementById('downloadPhotos');
         const speakerWarning = document.getElementById('speakerWarning');
+        const audioChunksList = document.getElementById('audio-chunks-list');
 
         // --- State Variables ---
         let mediaRecorder, activeStream, audioChunks = [], allRecordedBlobs = [];
-        let isContinuousRecording = false, chunkCount = 0, chunkTimer, timerInterval;
+        let isContinuousRecording = false, chunkCount = 0, chunkTimer, timerInterval, totalSeconds = 0;
         let transcriptEmpty = true, fullTranscript = "", summaryText = "";
         let currentCameraCallback = null;
         let documentationImages = [], screenshotImages = [];
@@ -445,23 +449,21 @@
         
         function startTimer() {
             recordingIndicator.classList.remove('hidden');
-            let seconds = 0;
+            totalSeconds = 0;
             if(timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
-                seconds++;
-                const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
-                const secs = (seconds % 60).toString().padStart(2, '0');
+                totalSeconds++;
+                const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+                const secs = (totalSeconds % 60).toString().padStart(2, '0');
                 timerSpan.textContent = `${minutes}:${secs}`;
             }, 1000);
         }
 
-        // === PERUBAHAN DI SINI (LOGIKA BARU) ===
         async function handleRecordClick() {
             if (isContinuousRecording) {
-                // --- LOGIKA UNTUK BERHENTI ---
-                isContinuousRecording = false; // Set flag ini dulu agar onstop tahu untuk tidak lanjut
+                isContinuousRecording = false; 
                 if (mediaRecorder && mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop(); // Ini akan memicu onstop
+                    mediaRecorder.stop(); 
                 }
                 clearTimeout(chunkTimer);
                 clearInterval(timerInterval);
@@ -471,14 +473,12 @@
                 log('Sesi rekaman berkelanjutan dihentikan oleh pengguna.', 'INFO');
 
             } else {
-                // --- LOGIKA UNTUK MULAI ---
                 const source = document.querySelector('input[name="audioSource"]:checked').value;
                 if (source === 'mic' || source === 'both') {
                     const hasPermission = await ensurePermissions({audio: true});
                     if (!hasPermission) return;
                 }
                 
-                // Minta izin stream HANYA SEKALI di sini
                 const stream = await getAudioStream();
                 if (!stream || stream.getAudioTracks().length === 0) {
                     log('Gagal mendapatkan sumber audio awal.', 'ERROR');
@@ -486,12 +486,12 @@
                     return;
                 }
                 
-                activeStream = stream; // Simpan stream secara global
+                activeStream = stream; 
                 isContinuousRecording = true;
                 chunkCount = 0;
                 allRecordedBlobs = [];
+                audioChunksList.innerHTML = '';
                 
-                // Mulai bagian rekaman pertama
                 startNewChunk(); 
             }
         }
@@ -519,23 +519,31 @@
             mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
             
             mediaRecorder.onstop = () => {
-                // Proses bagian yang sudah selesai direkam
+                const duration = timerSpan.textContent;
                 if (audioChunks.length > 0) {
                     const recordedBlob = new Blob(audioChunks, { type: audioChunks[0].type || 'audio/webm' });
-                    allRecordedBlobs.push(recordedBlob);
+                    const filename = `${generateBaseFilename()}_bagian_${chunkCount}.webm`;
+                    const blobUrl = URL.createObjectURL(recordedBlob);
+                    
+                    allRecordedBlobs.push({
+                        blob: recordedBlob,
+                        filename: filename,
+                        url: blobUrl,
+                        duration: duration,
+                        partNumber: chunkCount
+                    });
+                    
+                    renderAudioChunks();
+                    
                     if (recordedBlob.size > 0) {
                         log(`Mengirim bagian ke-${chunkCount} untuk transkripsi (di latar belakang).`, 'INFO');
-                        // Kirim untuk transkripsi tanpa menunggu (await)
                         transcribeAudio(recordedBlob, chunkCount); 
                     }
                 }
 
-                // Cek apakah rekaman harus berlanjut
                 if (isContinuousRecording) {
-                    // Jika ya, langsung mulai bagian baru dengan stream yang SAMA
                     startNewChunk();
                 } else {
-                    // Jika tidak (pengguna klik stop), baru matikan stream
                     if (activeStream) activeStream.getTracks().forEach(track => track.stop());
                     log('Stream audio dihentikan.', 'INFO');
                 }
@@ -545,12 +553,12 @@
                 mediaRecorder.start();
                 recordButton.innerHTML = `<span>Hentikan Sesi Rekaman</span>`;
                 recordButton.classList.replace('bg-blue-600', 'bg-red-600');
-                if (chunkCount === 1) startTimer(); // Hanya mulai timer visual sekali di awal
+                if (chunkCount === 1) startTimer(); 
                 
                 chunkTimer = setTimeout(() => {
                     if (mediaRecorder && mediaRecorder.state === 'recording') {
                         log(`Batas waktu 20 menit untuk bagian ke-${chunkCount} tercapai. Menghentikan...`, 'INFO');
-                        mediaRecorder.stop(); // Ini akan memicu onstop, yang kemudian akan memanggil startNewChunk lagi
+                        mediaRecorder.stop(); 
                     }
                 }, MAX_CHUNK_DURATION);
             } catch (error) {
@@ -560,6 +568,27 @@
                 recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
                 recordButton.classList.replace('bg-red-600', 'bg-blue-600');
             }
+        }
+        
+        // === PERUBAHAN DI SINI: Fungsi baru untuk render daftar audio ===
+        function renderAudioChunks() {
+            audioChunksList.innerHTML = ''; // Hapus daftar lama
+            allRecordedBlobs.forEach(chunk => {
+                const chunkEl = document.createElement('div');
+                chunkEl.className = 'flex justify-between items-center bg-slate-100 p-2 rounded-md';
+                chunkEl.innerHTML = `
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill text-green-500 mr-2" viewBox="0 0 16 16">
+                          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                        </svg>
+                        <span class="font-mono text-slate-700">Bagian ${chunk.partNumber} Selesai (${chunk.duration})</span>
+                    </div>
+                    <a href="${chunk.url}" download="${chunk.filename}" class="text-indigo-600 hover:underline font-semibold text-xs ml-4">
+                        Download
+                    </a>
+                `;
+                audioChunksList.appendChild(chunkEl);
+            });
         }
         // === AKHIR PERUBAHAN ===
 
@@ -902,7 +931,7 @@
 
         function downloadAudio() {
             if (allRecordedBlobs.length > 0) {
-                const combinedBlob = new Blob(allRecordedBlobs, { type: 'audio/webm' });
+                const combinedBlob = new Blob(allRecordedBlobs.map(c => c.blob), { type: 'audio/webm' });
                 downloadAsFile(`${generateBaseFilename()}_full.webm`, combinedBlob, 'audio/webm');
             } else {
                 alert('Tidak ada file suara yang direkam.');
