@@ -207,22 +207,24 @@
         </div>
     </div>
     
+    <!-- === PERUBAHAN DI SINI === -->
     <div id="instructionModal" class="fixed inset-0 z-50 items-center justify-center hidden flex modal-backdrop">
         <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <h3 class="text-lg font-bold text-slate-800 mb-3">🎤 Petunjuk Merekam Audio Sistem</h3>
+            <h3 class="text-lg font-bold text-slate-800 mb-3">📸 Petunjuk Pengambilan Screenshot & Audio</h3>
             <div class="text-sm text-slate-600 mb-4 space-y-3">
-                <p><strong>Langkah 1:</strong> Browser akan meminta izin untuk berbagi layar. Ini normal dan diperlukan untuk merekam audio sistem.</p>
-                <p><strong>Langkah 2:</strong> Pilih tab atau jendela yang sedang memutar audio (contoh: tab Zoom meeting).</p>
+                <p><strong>Langkah 1:</strong> Browser akan meminta izin untuk <strong>berbagi layar</strong>. Izin ini diperlukan untuk mengambil <strong>screenshot</strong> atau merekam <strong>audio sistem</strong>.</p>
+                <p><strong>Langkah 2:</strong> Pilih tab, jendela, atau seluruh layar yang ingin Anda ambil gambarnya atau rekam audionya.</p>
                 <div class="bg-yellow-50 border border-yellow-200 rounded p-3">
-                    <p class="font-semibold text-yellow-800">⚠️ PENTING:</p>
-                    <p class="text-yellow-700">Pastikan Anda <strong>mencentang kotak "Share system audio" atau "Bagikan audio tab"</strong> pada dialog izin. Tanpa ini, audio tidak akan terekam!</p>
+                    <p class="font-semibold text-yellow-800">⚠️ KHUSUS AUDIO:</p>
+                    <p class="text-yellow-700">Jika ingin merekam audio (misal dari Zoom), pastikan Anda <strong>mencentang kotak "Share system audio" atau "Bagikan audio tab"</strong>. Jika tidak, audio tidak akan terekam!</p>
                 </div>
-                <p><strong>Langkah 3:</strong> Klik "Share" atau "Bagikan" untuk memulai perekaman.</p>
-                <p class="text-xs text-slate-500"><em>Catatan: Jika tidak ada opsi audio, coba pilih tab yang berbeda atau pastikan tab tersebut sedang memutar audio.</em></p>
+                <p><strong>Langkah 3:</strong> Klik "Share" atau "Bagikan" untuk melanjutkan.</p>
+                <p class="text-xs text-slate-500"><em>Catatan: Setelah izin diberikan, aplikasi akan langsung mengambil screenshot atau memulai perekaman audio sesuai tombol yang Anda klik.</em></p>
             </div>
             <button id="instructionOkButton" class="w-full bg-indigo-600 text-white font-semibold py-2 rounded-lg hover:bg-indigo-700">Saya Mengerti, Lanjutkan</button>
         </div>
     </div>
+    <!-- === AKHIR PERUBAHAN === -->
 
     <script type="module">
         // Ganti dengan URL Cloud Run Anda
