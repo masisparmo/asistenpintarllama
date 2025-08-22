@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asisten Pintar - Asisten Pencatat Notulen Powered by Llama AI</title>
+    <title>Asisten Pintar - Aplikasi Pencatat Notulen Powered by Llama Ai</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,6 +41,11 @@
             font-size: 14px;
             font-weight: 500;
         }
+        .help-icon {
+            cursor: help;
+            margin-left: 8px;
+            color: #64748b;
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen p-4">
@@ -48,7 +53,7 @@
         
         <header class="text-center mb-8 relative">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Asisten Pintar</h1>
-            <p class="text-slate-600 mt-2">Asisten Pencatat Notulen Powered by Ai</p>
+            <p class="text-slate-600 mt-2">Aplikasi Pencatat Pintar Powered by Llama Ai</p>
             <div class="mt-4 flex justify-center items-center space-x-4 text-sm">
                 <a href="https://asistenpintarku.isparmo.com/about.html" target="_blank" class="font-semibold text-indigo-600 hover:underline">Tentang Aplikasi</a>
                 <span class="text-slate-400">|</span>
@@ -112,6 +117,18 @@
                     <button id="recordButton" class="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center space-x-2 shadow-sm">
                         <span>Mulai Rekam Suara</span>
                     </button>
+                    <div class="flex items-center">
+                        <label class="w-full bg-orange-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-orange-600 text-center cursor-pointer">
+                            <span>Upload File Audio</span>
+                            <input type="file" id="uploadAudioInput" class="hidden" accept=".webm">
+                        </label>
+                        <span class="help-icon" title="Format file audio yang didukung hanya .webm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.055.482.172.588.287.11.115.19.289.19.527v.214a.5.5 0 0 0 .55.49c.305-.04.55-.236.55-.532v-.214c0-.24-.08-.413-.19-.527-.102-.115-.286-.232-.588-.287l-.45-.083.082-.38.29-.287zM8 5.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                            </svg>
+                        </span>
+                    </div>
                     <div id="recording-indicator" class="text-center text-sm font-mono text-slate-700 hidden">
                         <span id="timer">00:00</span>
                     </div>
@@ -263,6 +280,7 @@
         const downloadAudioBtn = document.getElementById('downloadAudio');
         const downloadPhotosBtn = document.getElementById('downloadPhotos');
         const speakerWarning = document.getElementById('speakerWarning');
+        const uploadAudioInput = document.getElementById('uploadAudioInput');
 
         // --- State Variables ---
         let mediaRecorder, activeStream, audioChunks = [], allRecordedBlobs = [];
@@ -271,6 +289,9 @@
         let currentCameraCallback = null;
         let documentationImages = [], screenshotImages = [];
         const MAX_CHUNK_DURATION = 20 * 60 * 1000; // 20 menit
+        // PERUBAHAN DIMULAI: Definisikan ukuran potongan
+        const AUDIO_CHUNK_SIZE = 20 * 1024 * 1024; // 20 MB
+        // PERUBAHAN SELESAI
 
         // --- Utility Functions ---
         function log(message, type = 'INFO') {
@@ -521,9 +542,7 @@
                     const recordedBlob = new Blob(audioChunks, { type: audioChunks[0].type || 'audio/webm' });
                     allRecordedBlobs.push(recordedBlob);
                     if (recordedBlob.size > 0) {
-                        statusSpan.textContent = `Mentranskripsi Bagian ${chunkCount}...`;
-                        log(`Mengirim bagian ke-${chunkCount} untuk transkripsi.`, 'INFO');
-                        await transcribeAudio(recordedBlob, chunkCount);
+                        await transcribeAudio(recordedBlob, `Rekaman Bagian ${chunkCount}`);
                     }
                 }
 
@@ -573,21 +592,42 @@
             }
         }
 
-        async function transcribeAudio(audioBlob, partNumber) {
+        async function transcribeAudio(audioBlob, sourceName) {
             statusLoader.classList.remove('hidden');
+            statusSpan.textContent = `Mentranskripsi ${sourceName}...`;
             const formData = new FormData();
-            formData.append('file', audioBlob, `recording_part_${partNumber}.webm`);
+            formData.append('file', audioBlob, `audio_upload.webm`);
             try {
                 const result = await handleApiCall(`${BACKEND_URL}/api/transcribe`, { method: 'POST', body: formData }, 'Transcription');
                 if (result.error) throw new Error(result.error);
-                updateTranscript(result, `Suara (Bagian ${partNumber})`);
-                log(`Transkripsi bagian ke-${partNumber} berhasil.`, 'SUCCESS');
+                updateTranscript(result, `Suara (${sourceName})`);
+                log(`Transkripsi dari ${sourceName} berhasil.`, 'SUCCESS');
             } catch (error) {
-                 log(`Transkripsi bagian ke-${partNumber} gagal: ${error.message}`, 'ERROR');
+                 log(`Transkripsi dari ${sourceName} gagal: ${error.message}`, 'ERROR');
             } finally {
                 statusLoader.classList.add('hidden');
+                statusSpan.textContent = 'Siap...';
             }
         }
+
+        // PERUBAHAN DIMULAI: Fungsi baru untuk memotong dan mengirim file audio
+        async function processAndTranscribeUploadedFile(file) {
+            if (file.size > AUDIO_CHUNK_SIZE) {
+                log(`File terlalu besar (${(file.size / 1024 / 1024).toFixed(2)} MB). Memotong menjadi beberapa bagian...`, 'INFO');
+                const totalChunks = Math.ceil(file.size / AUDIO_CHUNK_SIZE);
+                for (let i = 0; i < totalChunks; i++) {
+                    const start = i * AUDIO_CHUNK_SIZE;
+                    const end = start + AUDIO_CHUNK_SIZE;
+                    const chunk = file.slice(start, end);
+                    const sourceName = `File: ${file.name} (Bagian ${i + 1}/${totalChunks})`;
+                    await transcribeAudio(chunk, sourceName);
+                }
+                 log(`Semua bagian dari file ${file.name} telah selesai diproses.`, 'SUCCESS');
+            } else {
+                await transcribeAudio(file, `File: ${file.name}`);
+            }
+        }
+        // PERUBAHAN SELESAI
         
         async function handleImageUpload(event, type) {
             const files = event.target.files;
@@ -807,11 +847,9 @@
             button.disabled = true;
             button.querySelector('span').textContent = 'Mempersiapkan...';
             
-            const originalTitle = document.title; // Simpan judul asli
-            const filename = `${generateBaseFilename()}`;
-            document.title = filename; // Ganti judul halaman utama
-
             try {
+                const filename = `${generateBaseFilename()}.pdf`;
+        
                 const reportTitle = document.getElementById('meetingName').value || "Laporan Acara";
                 const summaryHtml = `<h1>Ringkasan</h1>${summaryOutput.innerHTML}`;
                 const transcriptText = fullTranscript
@@ -829,7 +867,6 @@
                     pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; page-break-inside: avoid; }
                     ul, ol { page-break-inside: avoid; }
                     @page {
-                        size: A4;
                         margin: 1in;
                     }
                 `;
@@ -868,13 +905,11 @@
         
                 setTimeout(() => {
                     document.body.removeChild(iframe);
-                    document.title = originalTitle; // Kembalikan judul asli
                 }, 1000);
 
             } catch (error) {
                 log(`Failed to prepare for printing: ${error.message}`, 'ERROR');
                 alert('Gagal mempersiapkan dokumen untuk dicetak.');
-                document.title = originalTitle; // Kembalikan judul jika ada error
             } finally {
                 button.disabled = false;
                 button.querySelector('span').textContent = originalText;
@@ -1020,6 +1055,13 @@
         // --- ALL EVENT LISTENERS ---
         newSessionButton.addEventListener('click', startNewSession);
         recordButton.addEventListener('click', handleRecordClick);
+        uploadAudioInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                processAndTranscribeUploadedFile(file);
+            }
+            event.target.value = ''; // Reset input
+        });
         addNoteButton.addEventListener('click', handleManualNote);
         takeDocPhotoButton.addEventListener('click', () => openCamera(blob => {
             const filename = `${generateBaseFilename()}_doc_${Date.now()}.jpg`;
