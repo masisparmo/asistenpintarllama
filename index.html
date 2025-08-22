@@ -945,7 +945,6 @@
         function downloadTxt() { downloadAsFile(`${generateBaseFilename()}.txt`, generateReportContent('txt'), 'text/plain;charset=utf-8;'); }
         function downloadMd() { downloadAsFile(`${generateBaseFilename()}.md`, generateReportContent('md'), 'text/markdown;charset=utf-8;'); }
         
-        // === PERUBAHAN DI SINI: Logika Print diperbarui ===
         async function printReport() {
             log('Generating print view...', 'INFO');
             const button = document.getElementById('printButton');
@@ -961,6 +960,7 @@
                     .replace(/\[.*?\]:\n/g, (match) => `<strong>${match.slice(0, -2)}</strong>\n`)
                     .replace(/---/g, '\n<hr>\n');
                 const transcriptHtml = `<h2>Transkrip Lengkap</h2><pre style="white-space: pre-wrap; word-wrap: break-word;">${transcriptText}</pre>`;
+                // === PERUBAHAN DI SINI: Menambahkan size: A4 ===
                 const printStyles = `
                     body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #333; }
                     .container { width: 100%; margin: 0 auto; }
@@ -969,8 +969,9 @@
                     h2 { font-size: 18pt; border-bottom: 1px solid #eee; padding-bottom: 0.2em; margin-bottom: 0.5em;}
                     pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; page-break-inside: avoid; }
                     ul, ol { page-break-inside: avoid; }
-                    @page { margin: 1in; }
+                    @page { size: A4; margin: 1in; }
                 `;
+                // === AKHIR PERUBAHAN ===
 
                 const printWindow = window.open('', '_blank');
                 printWindow.document.write(`
@@ -1011,7 +1012,6 @@
                 }
             }
         }
-        // === AKHIR PERUBAHAN ===
 
         function downloadAudio() {
             if (allRecordedBlobs.length > 0) {
@@ -1194,4 +1194,4 @@
 
     </script>
 </body>
-</ht
+</html>
