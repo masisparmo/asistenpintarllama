@@ -207,7 +207,6 @@
         </div>
     </div>
     
-    <!-- === PERUBAHAN DI SINI === -->
     <div id="instructionModal" class="fixed inset-0 z-50 items-center justify-center hidden flex modal-backdrop">
         <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
             <h3 class="text-lg font-bold text-slate-800 mb-3">📸 Petunjuk Pengambilan Screenshot & Audio</h3>
@@ -224,7 +223,6 @@
             <button id="instructionOkButton" class="w-full bg-indigo-600 text-white font-semibold py-2 rounded-lg hover:bg-indigo-700">Saya Mengerti, Lanjutkan</button>
         </div>
     </div>
-    <!-- === AKHIR PERUBAHAN === -->
 
     <script type="module">
         // Ganti dengan URL Cloud Run Anda
@@ -516,7 +514,8 @@
 
             mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
             
-            mediaRecorder.onstop = async () => {
+            // === PERUBAHAN DI SINI ===
+            mediaRecorder.onstop = () => { // Dibuat menjadi non-async
                 if (activeStream) activeStream.getTracks().forEach(track => track.stop());
                 
                 if (audioChunks.length > 0) {
@@ -524,15 +523,18 @@
                     allRecordedBlobs.push(recordedBlob);
                     if (recordedBlob.size > 0) {
                         statusSpan.textContent = `Mentranskripsi Bagian ${chunkCount}...`;
-                        log(`Mengirim bagian ke-${chunkCount} untuk transkripsi.`, 'INFO');
-                        await transcribeAudio(recordedBlob, chunkCount);
+                        log(`Mengirim bagian ke-${chunkCount} untuk transkripsi (di latar belakang).`, 'INFO');
+                        // Transkripsi dijalankan tanpa 'await' agar tidak memblokir
+                        transcribeAudio(recordedBlob, chunkCount); 
                     }
                 }
 
+                // Langsung mulai bagian baru tanpa menunggu transkripsi selesai
                 if (isContinuousRecording) {
                     startNewChunk();
                 }
             };
+            // === AKHIR PERUBAHAN ===
             
             try {
                 mediaRecorder.start();
@@ -588,6 +590,7 @@
                  log(`Transkripsi bagian ke-${partNumber} gagal: ${error.message}`, 'ERROR');
             } finally {
                 statusLoader.classList.add('hidden');
+                 statusSpan.textContent = `Siap Merekam... (Bagian ${partNumber} selesai ditranskrip)`;
             }
         }
         
