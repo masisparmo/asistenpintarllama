@@ -111,7 +111,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- === PERUBAHAN DI SINI: Tombol dibungkus div === -->
                     <div id="recording-controls" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <button id="recordButton" class="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center space-x-2 shadow-sm sm:col-span-2">
                             <span>Mulai Rekam Suara</span>
@@ -120,7 +119,6 @@
                             <span>Pause Rekaman</span>
                         </button>
                     </div>
-                    <!-- === AKHIR PERUBAHAN === -->
                     <div id="recording-indicator" class="text-center text-sm font-mono text-slate-700 hidden">
                         <div class="flex items-center justify-center space-x-2">
                             <div id="recording-spinner" class="loader inline-loader !border-t-red-500"></div>
@@ -237,7 +235,6 @@
         </div>
     </div>
     
-    <!-- === PERUBAHAN DI SINI: Modal Konfirmasi === -->
     <div id="confirmModal" class="fixed inset-0 z-50 items-center justify-center hidden flex modal-backdrop">
         <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
             <h3 id="confirmModalTitle" class="text-lg font-bold text-slate-800 mb-4">Konfirmasi</h3>
@@ -248,7 +245,6 @@
             </div>
         </div>
     </div>
-    <!-- === AKHIR PERUBAHAN === -->
 
     <script type="module">
         // Ganti dengan URL Cloud Run Anda
@@ -364,7 +360,6 @@
             }
         }
         
-        // === PERUBAHAN DI SINI: Fungsi untuk menampilkan modal konfirmasi ===
         function showConfirmModal(message) {
             return new Promise((resolve, reject) => {
                 confirmModalMessage.textContent = message;
@@ -388,7 +383,6 @@
                 confirmModalNo.addEventListener('click', noHandler);
             });
         }
-        // === AKHIR PERUBAHAN ===
 
         function showInstructionModalAndWait() {
             return new Promise(resolve => {
@@ -524,12 +518,10 @@
             }, 1000);
         }
 
-        // === PERUBAHAN DI SINI: Logika Start/Stop/Pause/Resume ===
         async function handleRecordClick() {
             if (isContinuousRecording) {
                 try {
                     await showConfirmModal("Yakin mau menghentikan rekaman?");
-                    // User clicked Yes
                     isContinuousRecording = false; 
                     if (mediaRecorder && (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused')) {
                         mediaRecorder.stop(); 
@@ -537,7 +529,6 @@
                     clearTimeout(chunkTimer);
                     clearInterval(timerInterval);
                     
-                    // Reset UI
                     recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
                     recordButton.classList.replace('bg-red-600', 'bg-blue-600');
                     recordButton.classList.remove('sm:col-span-1');
@@ -546,11 +537,9 @@
                     statusSpan.textContent = 'Sesi rekaman dihentikan.';
                     log('Sesi rekaman berkelanjutan dihentikan oleh pengguna.', 'INFO');
                 } catch {
-                    // User clicked No
                     log('Penghentian rekaman dibatalkan.', 'INFO');
                 }
             } else {
-                // Start recording logic
                 const source = document.querySelector('input[name="audioSource"]:checked').value;
                 if (source === 'mic' || source === 'both') {
                     const hasPermission = await ensurePermissions({audio: true});
@@ -570,7 +559,6 @@
                 allRecordedBlobs = [];
                 audioChunksList.innerHTML = '';
                 
-                // Update UI for recording state
                 recordButton.innerHTML = `<span>Hentikan Sesi Rekaman</span>`;
                 recordButton.classList.replace('bg-blue-600', 'bg-red-600');
                 recordButton.classList.remove('sm:col-span-2');
@@ -599,7 +587,6 @@
                 log('Perekaman dilanjutkan.');
             }
         }
-        // === AKHIR PERUBAHAN ===
 
         function startNewChunk() {
             if (!isContinuousRecording || !activeStream) return;
@@ -958,6 +945,7 @@
         function downloadTxt() { downloadAsFile(`${generateBaseFilename()}.txt`, generateReportContent('txt'), 'text/plain;charset=utf-8;'); }
         function downloadMd() { downloadAsFile(`${generateBaseFilename()}.md`, generateReportContent('md'), 'text/markdown;charset=utf-8;'); }
         
+        // === PERUBAHAN DI SINI: Logika Print diperbarui ===
         async function printReport() {
             log('Generating print view...', 'INFO');
             const button = document.getElementById('printButton');
@@ -966,20 +954,13 @@
             button.querySelector('span').textContent = 'Mempersiapkan...';
             
             try {
-                // Generate the filename which will become the document title
                 const filename = `${generateBaseFilename()}`;
-        
-                // Get the report content
                 const reportTitle = document.getElementById('meetingName').value || "Laporan Acara";
                 const summaryHtml = `<h1>Ringkasan</h1>${summaryOutput.innerHTML}`;
-                // Format the raw transcript text nicely inside a <pre> tag
                 const transcriptText = fullTranscript
-                    .replace(/\[.*?\]:\n/g, (match) => `<strong>${match.slice(0, -2)}</strong>\n`) // Make headers bold
-                    .replace(/---/g, '\n<hr>\n'); // Add horizontal rules
-        
+                    .replace(/\[.*?\]:\n/g, (match) => `<strong>${match.slice(0, -2)}</strong>\n`)
+                    .replace(/---/g, '\n<hr>\n');
                 const transcriptHtml = `<h2>Transkrip Lengkap</h2><pre style="white-space: pre-wrap; word-wrap: break-word;">${transcriptText}</pre>`;
-        
-                // Define styles for printing
                 const printStyles = `
                     body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #333; }
                     .container { width: 100%; margin: 0 auto; }
@@ -988,24 +969,11 @@
                     h2 { font-size: 18pt; border-bottom: 1px solid #eee; padding-bottom: 0.2em; margin-bottom: 0.5em;}
                     pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; page-break-inside: avoid; }
                     ul, ol { page-break-inside: avoid; }
-                    @page {
-                        margin: 1in;
-                    }
+                    @page { margin: 1in; }
                 `;
-        
-                // Create a hidden iframe
-                const iframe = document.createElement('iframe');
-                iframe.style.position = 'absolute';
-                iframe.style.width = '0';
-                iframe.style.height = '0';
-                iframe.style.border = '0';
-                document.body.appendChild(iframe);
-        
-                const iframeDoc = iframe.contentWindow.document;
-        
-                // Write the complete HTML document into the iframe
-                iframeDoc.open();
-                iframeDoc.write(`
+
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
                     <!DOCTYPE html>
                     <html lang="id">
                         <head>
@@ -1022,16 +990,14 @@
                         </body>
                     </html>
                 `);
-                iframeDoc.close();
                 
-                // Trigger the print dialog on the iframe's content
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-        
-                // Clean up by removing the iframe
+                printWindow.document.close();
+                printWindow.focus();
+                
                 setTimeout(() => {
-                    document.body.removeChild(iframe);
-                }, 1000);
+                    printWindow.print();
+                    printWindow.close();
+                }, 500);
 
             } catch (error) {
                 log(`Failed to prepare for printing: ${error.message}`, 'ERROR');
@@ -1045,6 +1011,7 @@
                 }
             }
         }
+        // === AKHIR PERUBAHAN ===
 
         function downloadAudio() {
             if (allRecordedBlobs.length > 0) {
@@ -1227,4 +1194,4 @@
 
     </script>
 </body>
-</html>
+</ht
