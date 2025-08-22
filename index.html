@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asisten Pintar - Asisten Pencatat Notulen Powered by Llama</title>
+    <title>Asisten Pintar - Asisten Pencatat Notulen Powered by Llama AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,7 +48,7 @@
         
         <header class="text-center mb-8 relative">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Asisten Pintar</h1>
-            <p class="text-slate-600 mt-2">Asisten Pencatat Pintar Powered by Llama Ai</p>
+            <p class="text-slate-600 mt-2">Asisten Pencatat Notulen Powered by Ai</p>
             <div class="mt-4 flex justify-center items-center space-x-4 text-sm">
                 <a href="https://asistenpintarku.isparmo.com/about.html" target="_blank" class="font-semibold text-indigo-600 hover:underline">Tentang Aplikasi</a>
                 <span class="text-slate-400">|</span>
@@ -577,16 +577,6 @@
             statusLoader.classList.remove('hidden');
             const formData = new FormData();
             formData.append('file', audioBlob, `recording_part_${partNumber}.webm`);
-
-            // --- PERUBAHAN DIMULAI: Mengirim Detail Acara ---
-            const eventDetails = {
-                meetingName: document.getElementById('meetingName').value,
-                summaryTheme: document.getElementById('summaryTheme').value,
-                speakerName: document.getElementById('speakerName').value,
-            };
-            formData.append('eventDetails', JSON.stringify(eventDetails));
-            // --- PERUBAHAN SELESAI ---
-
             try {
                 const result = await handleApiCall(`${BACKEND_URL}/api/transcribe`, { method: 'POST', body: formData }, 'Transcription');
                 if (result.error) throw new Error(result.error);
@@ -817,21 +807,19 @@
             button.disabled = true;
             button.querySelector('span').textContent = 'Mempersiapkan...';
             
+            const originalTitle = document.title; // Simpan judul asli
+            const filename = `${generateBaseFilename()}`;
+            document.title = filename; // Ganti judul halaman utama
+
             try {
-                // Generate the filename which will become the document title
-                const filename = `${generateBaseFilename()}`;
-        
-                // Get the report content
                 const reportTitle = document.getElementById('meetingName').value || "Laporan Acara";
                 const summaryHtml = `<h1>Ringkasan</h1>${summaryOutput.innerHTML}`;
-                // Format the raw transcript text nicely inside a <pre> tag
                 const transcriptText = fullTranscript
-                    .replace(/\[.*?\]:\n/g, (match) => `<strong>${match.slice(0, -2)}</strong>\n`) // Make headers bold
-                    .replace(/---/g, '\n<hr>\n'); // Add horizontal rules
+                    .replace(/\[.*?\]:\n/g, (match) => `<strong>${match.slice(0, -2)}</strong>\n`)
+                    .replace(/---/g, '\n<hr>\n');
         
                 const transcriptHtml = `<h2>Transkrip Lengkap</h2><pre style="white-space: pre-wrap; word-wrap: break-word;">${transcriptText}</pre>`;
         
-                // Define styles for printing
                 const printStyles = `
                     body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #333; }
                     .container { width: 100%; margin: 0 auto; }
@@ -846,7 +834,6 @@
                     }
                 `;
         
-                // Create a hidden iframe
                 const iframe = document.createElement('iframe');
                 iframe.style.position = 'absolute';
                 iframe.style.width = '0';
@@ -856,7 +843,6 @@
         
                 const iframeDoc = iframe.contentWindow.document;
         
-                // Write the complete HTML document into the iframe
                 iframeDoc.open();
                 iframeDoc.write(`
                     <!DOCTYPE html>
@@ -877,18 +863,18 @@
                 `);
                 iframeDoc.close();
                 
-                // Trigger the print dialog on the iframe's content
                 iframe.contentWindow.focus();
                 iframe.contentWindow.print();
         
-                // Clean up by removing the iframe
                 setTimeout(() => {
                     document.body.removeChild(iframe);
+                    document.title = originalTitle; // Kembalikan judul asli
                 }, 1000);
 
             } catch (error) {
                 log(`Failed to prepare for printing: ${error.message}`, 'ERROR');
                 alert('Gagal mempersiapkan dokumen untuk dicetak.');
+                document.title = originalTitle; // Kembalikan judul jika ada error
             } finally {
                 button.disabled = false;
                 button.querySelector('span').textContent = originalText;
