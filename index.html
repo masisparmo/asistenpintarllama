@@ -577,6 +577,16 @@
             statusLoader.classList.remove('hidden');
             const formData = new FormData();
             formData.append('file', audioBlob, `recording_part_${partNumber}.webm`);
+
+            // --- PERUBAHAN DIMULAI: Mengirim Detail Acara ---
+            const eventDetails = {
+                meetingName: document.getElementById('meetingName').value,
+                summaryTheme: document.getElementById('summaryTheme').value,
+                speakerName: document.getElementById('speakerName').value,
+            };
+            formData.append('eventDetails', JSON.stringify(eventDetails));
+            // --- PERUBAHAN SELESAI ---
+
             try {
                 const result = await handleApiCall(`${BACKEND_URL}/api/transcribe`, { method: 'POST', body: formData }, 'Transcription');
                 if (result.error) throw new Error(result.error);
@@ -831,6 +841,7 @@
                     pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; page-break-inside: avoid; }
                     ul, ol { page-break-inside: avoid; }
                     @page {
+                        size: A4;
                         margin: 1in;
                     }
                 `;
