@@ -13,6 +13,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        .inline-loader { display: inline-block; vertical-align: middle; width: 16px; height: 16px; border-width: 2px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
@@ -113,11 +114,12 @@
                         <span>Mulai Rekam Suara</span>
                     </button>
                     <div id="recording-indicator" class="text-center text-sm font-mono text-slate-700 hidden">
-                        <span>Durasi Sesi: </span><span id="timer">00:00</span>
+                        <div class="flex items-center justify-center space-x-2">
+                            <div class="loader inline-loader !border-t-red-500"></div>
+                            <span>Durasi Sesi: <span id="timer">00:00</span></span>
+                        </div>
                     </div>
-                    <!-- === PERUBAHAN DI SINI: Container untuk daftar audio chunk === -->
                     <div id="audio-chunks-list" class="mt-2 space-y-2 text-sm"></div>
-                    <!-- === AKHIR PERUBAHAN === -->
                     <div class="flex flex-col sm:flex-row gap-2">
                         <button id="takeScreenshotButton" class="flex-1 bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700">Ambil Foto</button>
                         <button id="takeNoteScreenshotAreaButton" class="flex-1 bg-teal-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-teal-700">Ambil Screenshot</button>
@@ -502,6 +504,8 @@
             chunkCount++;
             log(`Memulai rekaman bagian ke-${chunkCount}.`, 'INFO');
             statusSpan.textContent = `Merekam Bagian ${chunkCount}...`;
+            statusLoader.classList.remove('hidden');
+
 
             audioChunks = [];
             
@@ -530,7 +534,8 @@
                         filename: filename,
                         url: blobUrl,
                         duration: duration,
-                        partNumber: chunkCount
+                        partNumber: chunkCount,
+                        status: 'transcribing' // === PERUBAHAN DI SINI: Status awal ===
                     });
                     
                     renderAudioChunks();
@@ -546,6 +551,7 @@
                 } else {
                     if (activeStream) activeStream.getTracks().forEach(track => track.stop());
                     log('Stream audio dihentikan.', 'INFO');
+                    statusLoader.classList.add('hidden');
                 }
             };
             
@@ -570,18 +576,26 @@
             }
         }
         
-        // === PERUBAHAN DI SINI: Fungsi baru untuk render daftar audio ===
+        // === PERUBAHAN DI SINI: Fungsi render diperbarui dengan logika status ===
         function renderAudioChunks() {
-            audioChunksList.innerHTML = ''; // Hapus daftar lama
+            audioChunksList.innerHTML = '';
             allRecordedBlobs.forEach(chunk => {
                 const chunkEl = document.createElement('div');
                 chunkEl.className = 'flex justify-between items-center bg-slate-100 p-2 rounded-md';
+                
+                let statusIcon = '';
+                if (chunk.status === 'transcribing') {
+                    statusIcon = `<div class="loader inline-loader !w-4 !h-4 !border-2 mr-2"></div>`;
+                } else if (chunk.status === 'success') {
+                    statusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-green-500 mr-2" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>`;
+                } else if (chunk.status === 'error') {
+                    statusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-red-500 mr-2" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/></svg>`;
+                }
+
                 chunkEl.innerHTML = `
                     <div class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill text-green-500 mr-2" viewBox="0 0 16 16">
-                          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                        </svg>
-                        <span class="font-mono text-slate-700">Bagian ${chunk.partNumber} Selesai (${chunk.duration})</span>
+                        ${statusIcon}
+                        <span class="font-mono text-slate-700">Bagian ${chunk.partNumber} (${chunk.duration})</span>
                     </div>
                     <a href="${chunk.url}" download="${chunk.filename}" class="text-indigo-600 hover:underline font-semibold text-xs ml-4">
                         Download
@@ -613,22 +627,28 @@
             }
         }
 
+        // === PERUBAHAN DI SINI: Fungsi transcribe diperbarui untuk update status ===
         async function transcribeAudio(audioBlob, partNumber) {
-            statusLoader.classList.remove('hidden');
             const formData = new FormData();
             formData.append('file', audioBlob, `recording_part_${partNumber}.webm`);
+            
+            const chunk = allRecordedBlobs.find(c => c.partNumber === partNumber);
+
             try {
                 const result = await handleApiCall(`${BACKEND_URL}/api/transcribe`, { method: 'POST', body: formData }, 'Transcription');
                 if (result.error) throw new Error(result.error);
                 updateTranscript(result, `Suara (Bagian ${partNumber})`);
                 log(`Transkripsi bagian ke-${partNumber} berhasil.`, 'SUCCESS');
+                if(chunk) chunk.status = 'success';
             } catch (error) {
                  log(`Transkripsi bagian ke-${partNumber} gagal: ${error.message}`, 'ERROR');
+                 if(chunk) chunk.status = 'error';
             } finally {
-                statusLoader.classList.add('hidden');
-                 statusSpan.textContent = `Siap Merekam... (Bagian ${partNumber} selesai ditranskrip)`;
+                 renderAudioChunks();
+                 statusSpan.textContent = `Siap...`;
             }
         }
+        // === AKHIR PERUBAHAN ===
         
         async function handleImageUpload(event, type) {
             const files = event.target.files;
