@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asisten Pintar - Asisten Pencatat Notulen Powered by Llama Ai</title>
+    <title>Asisten Pintar - Asisten Pencatat Notulen Powered by Llama</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,7 +48,7 @@
         
         <header class="text-center mb-8 relative">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Asisten Pintar</h1>
-            <p class="text-slate-600 mt-2">Aplikasi Pencatat Notulen Powered by Llama</p>
+            <p class="text-slate-600 mt-2">Asisten Pencatat Pintar Powered by Llama Ai</p>
             <div class="mt-4 flex justify-center items-center space-x-4 text-sm">
                 <a href="https://asistenpintarku.isparmo.com/about.html" target="_blank" class="font-semibold text-indigo-600 hover:underline">Tentang Aplikasi</a>
                 <span class="text-slate-400">|</span>
@@ -455,11 +455,13 @@
             }, 1000);
         }
 
+        // === PERUBAHAN DI SINI (LOGIKA BARU) ===
         async function handleRecordClick() {
             if (isContinuousRecording) {
-                isContinuousRecording = false;
+                // --- LOGIKA UNTUK BERHENTI ---
+                isContinuousRecording = false; // Set flag ini dulu agar onstop tahu untuk tidak lanjut
                 if (mediaRecorder && mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
+                    mediaRecorder.stop(); // Ini akan memicu onstop
                 }
                 clearTimeout(chunkTimer);
                 clearInterval(timerInterval);
@@ -467,37 +469,39 @@
                 recordButton.classList.replace('bg-red-600', 'bg-blue-600');
                 statusSpan.textContent = 'Sesi rekaman dihentikan.';
                 log('Sesi rekaman berkelanjutan dihentikan oleh pengguna.', 'INFO');
+
             } else {
+                // --- LOGIKA UNTUK MULAI ---
                 const source = document.querySelector('input[name="audioSource"]:checked').value;
                 if (source === 'mic' || source === 'both') {
                     const hasPermission = await ensurePermissions({audio: true});
                     if (!hasPermission) return;
                 }
                 
+                // Minta izin stream HANYA SEKALI di sini
+                const stream = await getAudioStream();
+                if (!stream || stream.getAudioTracks().length === 0) {
+                    log('Gagal mendapatkan sumber audio awal.', 'ERROR');
+                    statusSpan.textContent = 'Gagal memulai rekaman.';
+                    return;
+                }
+                
+                activeStream = stream; // Simpan stream secara global
                 isContinuousRecording = true;
                 chunkCount = 0;
                 allRecordedBlobs = [];
-                startNewChunk();
+                
+                // Mulai bagian rekaman pertama
+                startNewChunk(); 
             }
         }
 
-        async function startNewChunk() {
-            if (!isContinuousRecording) return;
+        function startNewChunk() {
+            if (!isContinuousRecording || !activeStream) return;
             
             chunkCount++;
             log(`Memulai rekaman bagian ke-${chunkCount}.`, 'INFO');
             statusSpan.textContent = `Merekam Bagian ${chunkCount}...`;
-
-            activeStream = await getAudioStream();
-            
-            if (!activeStream || activeStream.getAudioTracks().length === 0) {
-                log('Gagal mendapatkan sumber audio yang valid.', 'ERROR');
-                statusSpan.textContent = 'Gagal memulai rekaman.';
-                isContinuousRecording = false;
-                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
-                recordButton.classList.replace('bg-red-600', 'bg-blue-600');
-                return;
-            }
 
             audioChunks = [];
             
@@ -507,44 +511,46 @@
                 log(`Gagal membuat MediaRecorder: ${error.message}`, 'ERROR');
                 statusSpan.textContent = 'Browser tidak mendukung perekaman.';
                 isContinuousRecording = false;
-                 recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
+                recordButton.innerHTML = `<span>Mulai Rekam Suara</span>`;
                 recordButton.classList.replace('bg-red-600', 'bg-blue-600');
                 return;
             }
 
             mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
             
-            // === PERUBAHAN DI SINI ===
-            mediaRecorder.onstop = () => { // Dibuat menjadi non-async
-                if (activeStream) activeStream.getTracks().forEach(track => track.stop());
-                
+            mediaRecorder.onstop = () => {
+                // Proses bagian yang sudah selesai direkam
                 if (audioChunks.length > 0) {
                     const recordedBlob = new Blob(audioChunks, { type: audioChunks[0].type || 'audio/webm' });
                     allRecordedBlobs.push(recordedBlob);
                     if (recordedBlob.size > 0) {
-                        statusSpan.textContent = `Mentranskripsi Bagian ${chunkCount}...`;
                         log(`Mengirim bagian ke-${chunkCount} untuk transkripsi (di latar belakang).`, 'INFO');
-                        // Transkripsi dijalankan tanpa 'await' agar tidak memblokir
+                        // Kirim untuk transkripsi tanpa menunggu (await)
                         transcribeAudio(recordedBlob, chunkCount); 
                     }
                 }
 
-                // Langsung mulai bagian baru tanpa menunggu transkripsi selesai
+                // Cek apakah rekaman harus berlanjut
                 if (isContinuousRecording) {
+                    // Jika ya, langsung mulai bagian baru dengan stream yang SAMA
                     startNewChunk();
+                } else {
+                    // Jika tidak (pengguna klik stop), baru matikan stream
+                    if (activeStream) activeStream.getTracks().forEach(track => track.stop());
+                    log('Stream audio dihentikan.', 'INFO');
                 }
             };
-            // === AKHIR PERUBAHAN ===
             
             try {
                 mediaRecorder.start();
                 recordButton.innerHTML = `<span>Hentikan Sesi Rekaman</span>`;
                 recordButton.classList.replace('bg-blue-600', 'bg-red-600');
-                startTimer();
+                if (chunkCount === 1) startTimer(); // Hanya mulai timer visual sekali di awal
+                
                 chunkTimer = setTimeout(() => {
                     if (mediaRecorder && mediaRecorder.state === 'recording') {
                         log(`Batas waktu 20 menit untuk bagian ke-${chunkCount} tercapai. Menghentikan...`, 'INFO');
-                        mediaRecorder.stop();
+                        mediaRecorder.stop(); // Ini akan memicu onstop, yang kemudian akan memanggil startNewChunk lagi
                     }
                 }, MAX_CHUNK_DURATION);
             } catch (error) {
@@ -555,6 +561,7 @@
                 recordButton.classList.replace('bg-red-600', 'bg-blue-600');
             }
         }
+        // === AKHIR PERUBAHAN ===
 
         async function handleApiCall(url, options, context) {
             try {
