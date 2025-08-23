@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bantuan & F.A.Q - Asisten Pintar</title>
+    <title>Bantuan Asisten Pintar / Asisten Pintar Help</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,188 +11,379 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-        }
-        .content-section h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 0.5rem;
-        }
-        .content-section p, .content-section li {
-            line-height: 1.75;
-        }
-        .content-section ol, .content-section ul {
-            margin-left: 1.5rem;
-            margin-bottom: 1rem;
+            background-color: #f1f5f9;
         }
         .lang-btn.active {
             background-color: #4f46e5;
             color: white;
         }
-        .faq-question {
+        .content-section h3 {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 700;
+            color: #334155; /* slate-800 */
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0; /* slate-200 */
+        }
+        .content-section h4 {
+            font-size: 1.125rem; /* 18px */
             font-weight: 600;
+            color: #475569; /* slate-600 */
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .content-section p, .content-section li {
+            color: #475569; /* slate-600 */
+            line-height: 1.75;
+            margin-bottom: 0.5rem;
+        }
+        .content-section ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .content-section ol {
+            list-style-type: decimal;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+         .content-section code {
+            background-color: #e2e8f0;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+        details > summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: #1e293b; /* slate-800 */
+            padding: 0.75rem;
+            background-color: #f8fafc; /* slate-50 */
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        details > summary:hover {
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        details[open] > summary {
+            background-color: #eef2ff; /* indigo-50 */
+            color: #4338ca; /* indigo-700 */
+        }
+        details > div {
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 0.5rem 0.5rem;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="text-slate-800">
 
-    <div class="container mx-auto max-w-4xl p-4 sm:p-8">
-        <header class="text-center mb-8">
-            <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-slate-900">Pusat Bantuan</h1>
-            <p id="main-subtitle" class="text-slate-600 mt-2">Asisten Pintar App</p>
+    <div class="container mx-auto max-w-4xl p-4 sm:p-6 md:p-8">
+        
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold text-slate-900">Asisten Pintar</h1>
+            <div class="flex space-x-1 border border-slate-300 rounded-lg p-1">
+                <button id="btn-id" class="lang-btn px-3 py-1 text-sm font-semibold rounded-md transition-colors" onclick="switchLanguage('id')">ID</button>
+                <button id="btn-en" class="lang-btn px-3 py-1 text-sm font-semibold rounded-md transition-colors" onclick="switchLanguage('en')">EN</button>
+            </div>
         </header>
 
-        <!-- Language Switcher -->
-        <div class="flex justify-center mb-8 bg-slate-200 p-1 rounded-lg">
-            <button id="btn-id" class="lang-btn active w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">Bahasa Indonesia</button>
-            <button id="btn-en" class="lang-btn w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">English</button>
-        </div>
+        <main class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200">
+            
+            <!-- Indonesian Content -->
+            <div id="content-id">
+                <section class="mb-10 content-section">
+                    <h2 class="text-3xl font-bold text-indigo-700 mb-4">Pusat Bantuan Asisten Pintar</h2>
+                    
+                    <h3>Deskripsi Aplikasi</h3>
+                    <p>
+                        <strong>Asisten Pintar</strong> adalah asisten pribadi Anda untuk membuat notulen secara otomatis. Aplikasi ini dirancang untuk mengubah percakapan lisan dan materi visual menjadi catatan tertulis yang rapi, terstruktur, dan siap pakai. Dengan teknologi AI canggih, Anda bisa fokus pada diskusi, sementara Asisten Pintar yang bekerja mencatat.
+                    </p>
 
-        <!-- Indonesian Content -->
-        <div id="content-id" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md">
-            <h3>Cara Detail Penggunaan Aplikasi</h3>
-            <ol class="list-decimal space-y-4">
-                <li>
-                    <strong>Isi Informasi Acara:</strong> Mulailah dengan mengisi detail acara seperti Nama Acara, Tema, Pembicara, dan lainnya. Informasi ini akan digunakan untuk memberi konteks pada ringkasan AI.
-                </li>
-                <li>
-                    <strong>Kumpulkan Catatan:</strong> Anda bisa mengumpulkan catatan dari berbagai sumber:
-                    <ul class="list-disc mt-2">
-                        <li>Klik <b>"Mulai Rekam Suara"</b> untuk mentranskripsi percakapan secara langsung.</li>
-                        <li>Gunakan tombol <b>"Ambil Foto"</b> atau <b>"Ambil Screenshot"</b> untuk menangkap informasi visual.</li>
-                        <li>Ketik catatan penting di kolom <b>catatan manual</b> dan klik "Tambah Catatan".</li>
+                    <h3>Untuk Siapa Aplikasi Ini?</h3>
+                    <p>Aplikasi ini sangat ideal untuk:</p>
+                    <ul>
+                        <li><strong>Profesional & Karyawan:</strong> Untuk mencatat hasil rapat, diskusi tim, atau sesi brainstorming secara efisien.</li>
+                        <li><strong>Mahasiswa & Pelajar:</strong> Untuk merekam dan merangkum materi kuliah, seminar, atau kelompok belajar.</li>
+                        <li><strong>Jurnalis & Peneliti:</strong> Untuk mentranskripsi wawancara atau rekaman lapangan dengan cepat.</li>
+                        <li><strong>Siapa Saja</strong> yang ingin mengubah percakapan menjadi catatan yang bermanfaat tanpa repot mengetik manual.</li>
                     </ul>
-                </li>
-                <li>
-                    <strong>Tinjau Transkrip Gabungan:</strong> Semua input Anda (suara, gambar, teks) akan muncul secara real-time di kolom "Gabungan Transkrip".
-                </li>
-                <li>
-                    <strong>Buat Ringkasan:</strong> Setelah semua informasi terkumpul, klik tombol <b>"Buat Ringkasan"</b>. AI akan menganalisis semua data dan membuat notulensi yang terstruktur di bagian "Hasil Ringkasan".
-                </li>
-                 <li>
-                    <strong>Simpan & Ekspor:</strong> Gunakan tombol-tombol di bagian "Simpan Laporan" untuk mengunduh hasil kerja Anda dalam format yang Anda inginkan (PDF, TXT, MD, Audio, atau ZIP berisi foto).
-                </li>
-            </ol>
 
-            <h3>Frequently Asked Questions (F.A.Q)</h3>
-            <div class="space-y-4">
-                <div>
-                    <p class="faq-question">1. Apakah data saya aman dan disimpan di server?</p>
-                    <p>Privasi Anda adalah prioritas kami. Kami tidak menyimpan data input Anda (audio, gambar) secara permanen. Data hanya diproses sementara untuk menghasilkan output, lalu dihapus. Lihat <a href="privacy.html" class="text-indigo-600 hover:underline">Kebijakan Privasi</a> kami untuk detailnya.</p>
-                </div>
-                <div>
-                    <p class="faq-question">2. Format audio apa yang didukung?</p>
-                    <p>Aplikasi ini merekam audio dalam format WebM dengan codec Opus, yang efisien dan didukung secara luas oleh browser modern. Saat ini, kami belum mendukung unggah file audio eksternal.</p>
-                </div>
-                <div>
-                    <p class="faq-question">3. Mengapa hasil transkripsi terkadang tidak akurat?</p>
-                    <p>Akurasi transkripsi bergantung pada beberapa faktor, seperti kualitas mikrofon, kebisingan latar belakang, dan kejelasan pembicara. Untuk hasil terbaik, gunakan di lingkungan yang tenang dengan suara yang jelas.</p>
-                </div>
-                <div>
-                    <p class="faq-question">4. Apakah ada batasan durasi rekaman?</p>
-                    <p>Secara teknis tidak ada batasan durasi, namun ada batasan ukuran file sekitar 24 MB untuk menjaga performa. Aplikasi akan memberi peringatan dan berhenti otomatis jika mendekati batas tersebut. Untuk sesi yang sangat panjang, disarankan untuk melakukan beberapa kali rekaman.</p>
-                </div>
-                <div>
-                    <p class="faq-question">5. Bisakah saya mengedit transkrip sebelum diringkas?</p>
-                    <p>Saat ini, fitur untuk mengedit transkrip secara langsung belum tersedia. Namun, Anda dapat menyalin teks dari kotak transkrip, memperbaikinya di editor teks lain, lalu menambahkannya kembali sebagai "Catatan Manual".</p>
-                </div>
+                    <h3>Mengapa Menggunakan Asisten Pintar?</h3>
+                    <ul>
+                        <li><strong>Hemat Waktu:</strong> Otomatiskan proses transkripsi dan ringkasan yang memakan waktu.</li>
+                        <li><strong>Fokus Penuh:</strong> Anda bisa lebih aktif berpartisipasi dalam diskusi tanpa khawatir ketinggalan poin penting.</li>
+                        <li><strong>Catatan Komprehensif:</strong> Gabungkan catatan dari suara, gambar, dan ketikan manual dalam satu dokumen yang utuh.</li>
+                        <li><strong>Hasil Terstruktur:</strong> Dapatkan ringkasan yang relevan dengan jenis acara Anda, lengkap dengan poin keputusan dan daftar tugas.</li>
+                    </ul>
+
+                    <h3>Panduan Penggunaan Aplikasi</h3>
+                    <p>Menggunakan Asisten Pintar sangat mudah. Ikuti langkah-langkah berikut:</p>
+                    <ol>
+                        <li><strong>Isi Informasi Acara:</strong> Mulailah dengan mengisi detail acara seperti Nama Acara, Tema, Tanggal, dan lainnya. Ini akan membantu AI membuat konteks yang lebih baik untuk ringkasan Anda.</li>
+                        <li><strong>Kumpulkan Catatan (Input):</strong> Ini adalah langkah utama. Anda bisa mengumpulkan catatan dari berbagai sumber:
+                            <ul>
+                                <li><strong>Rekam Suara:</strong> Pilih sumber suara (Mikrofon atau Audio Sistem), lalu klik <strong>"Mulai Rekam Suara"</strong>. Anda bisa menjeda (pause) atau menghentikan sesi kapan saja.</li>
+                                <li><strong>Ambil Foto/Screenshot:</strong> Gunakan tombol <strong>"Ambil Foto"</strong> (menggunakan kamera perangkat) atau <strong>"Ambil Screenshot"</strong> (menangkap layar) untuk menambahkan konteks visual.</li>
+                                <li><strong>Upload Gambar:</strong> Unggah gambar atau slide presentasi yang relevan dari perangkat Anda.</li>
+                                <li><strong>Catatan Manual:</strong> Ketik catatan tambahan atau poin penting di kolom yang tersedia.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Lihat Gabungan Transkrip:</strong> Semua input Anda (suara yang ditranskrip, teks dari gambar, dan catatan manual) akan muncul secara real-time di kotak "Gabungan Transkrip".</li>
+                        <li><strong>Buat Ringkasan:</strong> Setelah semua catatan terkumpul, klik tombol <strong>"Buat Ringkasan"</strong>. AI akan memproses seluruh transkrip dan menghasilkan ringkasan cerdas di bagian "Hasil Ringkasan".</li>
+                        <li><strong>Simpan & Ekspor:</strong> Setelah ringkasan jadi, Anda bisa mengunduh laporan lengkap dalam format TXT, Markdown, mencetaknya sebagai PDF, atau mengunduh semua file audio dan gambar sebagai file ZIP.</li>
+                    </ol>
+
+                    <!-- === BAGIAN BARU === -->
+                    <h3>Penjelasan Fitur-Fitur Utama</h3>
+                    <h4>Informasi Acara</h4>
+                    <p>Mengisi bagian ini memberikan konteks penting bagi AI. Semakin baik AI memahami acara Anda (misalnya, ini adalah 'Rapat' tentang 'Anggaran Kuartal'), semakin relevan dan akurat ringkasan yang akan dibuat.</p>
+                    <h4>Perekaman Suara</h4>
+                    <ul>
+                        <li><strong>Mikrofon:</strong> Merekam suara dari ruangan Anda, cocok untuk rapat tatap muka atau saat Anda berbicara.</li>
+                        <li><strong>Audio Sistem:</strong> Merekam suara yang keluar dari speaker komputer Anda, sempurna untuk rapat online (Zoom, Meet), webinar, atau video.</li>
+                        <li><strong>Keduanya:</strong> Menggabungkan mikrofon dan audio sistem, ideal jika Anda ingin merekam rapat online sekaligus komentar Anda sendiri.</li>
+                    </ul>
+                    <h4>Ambil Foto & Upload Gambar</h4>
+                    <p>Fitur ini menggunakan teknologi OCR (Optical Character Recognition) untuk 'membaca' teks dari gambar. Sangat berguna untuk menangkap teks dari slide presentasi, papan tulis, atau dokumen fisik tanpa perlu mengetik ulang.</p>
+                    <h4>Buat Ringkasan</h4>
+                    <p>Ini adalah inti dari Asisten Pintar. Saat Anda mengklik tombol ini, AI akan membaca seluruh teks yang terkumpul dan membuat ringkasan profesional yang terstruktur sesuai dengan 'Tema Acara' yang Anda pilih. Misalnya, untuk tema 'Rapat', AI akan fokus mencari poin keputusan dan daftar tugas.</p>
+                    <h4>Simpan & Ekspor</h4>
+                    <ul>
+                        <li><strong>Simpan .txt:</strong> Menghasilkan file teks polos (seperti Notepad) yang bisa dibuka di hampir semua perangkat.</li>
+                        <li><strong>Simpan .md (Markdown):</strong> Ini adalah format file yang spesial. Bayangkan ini seperti file teks biasa tapi dengan sedikit 'sihir' pemformatan. Teks di dalamnya bisa memiliki judul, tulisan tebal, dan daftar berpoin, namun tetap sangat ringan dan mudah dibagikan. File <code>.md</code> sangat berguna jika Anda ingin menyalin-tempel notulen ke email, blog, WhatsApp, atau platform lain karena formatnya akan tetap rapi.</li>
+                        <li><strong>Cetak Laporan (.pdf):</strong> Membuat file PDF berukuran A4 yang siap cetak dan cocok untuk dibagikan sebagai laporan formal.</li>
+                        <li><strong>Simpan Audio Lengkap:</strong> Mengunduh semua segmen rekaman audio Anda dalam satu file.</li>
+                        <li><strong>Simpan Foto (.zip):</strong> Mengemas semua gambar yang Anda ambil atau unggah ke dalam satu file ZIP agar mudah diunduh dan diarsipkan.</li>
+                    </ul>
+                    <!-- === AKHIR BAGIAN BARU === -->
+
+                    <h3>Batasan Aplikasi</h3>
+                    <ul>
+                        <li><strong>Kualitas Audio & Gambar:</strong> Akurasi transkripsi dan ekstraksi teks sangat bergantung pada kualitas input. Pastikan suara jernih dan gambar tidak buram.</li>
+                        <li><strong>Koneksi Internet:</strong> Aplikasi ini membutuhkan koneksi internet yang stabil untuk berkomunikasi dengan server AI.</li>
+                        <li><strong>Penyimpanan Sementara:</strong> Aplikasi menggunakan penyimpanan browser (LocalStorage) untuk menyimpan sesi Anda. Jika Anda membersihkan cache browser, data sesi yang belum disimpan akan hilang.</li>
+                    </ul>
+
+                    <h3>F.A.Q (Pertanyaan yang Sering Diajukan)</h3>
+                    <div class="space-y-4">
+                        <details>
+                            <summary>1. Apakah data saya aman?</summary>
+                            <div><p>Keamanan data Anda adalah prioritas kami. Kami tidak menyimpan rekaman audio atau gambar Anda di server kami setelah diproses. Semua data hanya digunakan untuk transkripsi dan ringkasan selama sesi Anda aktif. Untuk detail lebih lanjut, silakan baca <a href="https://asistenpintarku.isparmo.com/privacy" target="_blank" class="text-indigo-600 hover:underline">Kebijakan Privasi</a> kami.</p></div>
+                        </details>
+                        <details>
+                            <summary>2. Apakah aplikasi ini gratis?</summary>
+                            <div><p>Saat ini, Asisten Pintar tersedia untuk digunakan secara gratis. Namun, kami mungkin akan memperkenalkan paket premium di masa depan. Penggunaan aplikasi tunduk pada <a href="https://asistenpintarku.isparmo.com/terms" target="_blank" class="text-indigo-600 hover:underline">Ketentuan Layanan</a> kami.</p></div>
+                        </details>
+                        <details>
+                            <summary>3. Mengapa saya harus memberikan izin mikrofon/layar?</summary>
+                            <div><p>Izin diperlukan agar browser dapat mengakses mikrofon untuk merekam suara atau menangkap layar untuk fitur screenshot. Aplikasi hanya akan mengaksesnya saat Anda mengklik tombol yang sesuai.</p></div>
+                        </details>
+                        <details>
+                            <summary>4. Format file apa saja yang didukung untuk diunggah?</summary>
+                            <div><p>Untuk gambar, kami mendukung format umum seperti JPG, PNG, dan WEBP. Untuk audio, perekaman internal disimpan sebagai WEBM.</p></div>
+                        </details>
+                        <details>
+                            <summary>5. Berapa lama saya bisa merekam audio?</summary>
+                            <div><p>Aplikasi ini dirancang untuk merekam dalam segmen 20 menit. Setelah 20 menit, rekaman akan otomatis diproses dan sesi baru akan dimulai, memungkinkan Anda merekam untuk waktu yang lama tanpa gangguan.</p></div>
+                        </details>
+                        <details>
+                            <summary>6. Mengapa hasil transkrip saya tidak 100% akurat?</summary>
+                            <div><p>Akurasi dipengaruhi oleh banyak faktor, seperti kebisingan latar belakang, kejelasan suara pembicara, dan istilah teknis yang kompleks. Kami terus berupaya meningkatkan model AI kami untuk hasil yang lebih baik.</p></div>
+                        </details>
+                        <details>
+                            <summary>7. Bisakah saya mengedit hasil transkrip?</summary>
+                            <div><p>Saat ini, fitur edit langsung di dalam aplikasi belum tersedia. Namun, Anda bisa menyalin teks dari kotak transkrip atau mengunduh file TXT/MD untuk diedit di aplikasi lain.</p></div>
+                        </details>
+                        <details>
+                            <summary>8. Apa yang terjadi jika saya menutup browser di tengah sesi?</summary>
+                            <div><p>Aplikasi menyimpan status sesi Anda (transkrip dan gambar) di penyimpanan browser. Jika Anda membuka kembali aplikasi di browser yang sama, data Anda seharusnya akan muncul kembali. Namun, rekaman yang sedang berjalan akan berhenti.</p></div>
+                        </details>
+                        <details>
+                            <summary>9. Apakah aplikasi ini berfungsi di ponsel?</summary>
+                            <div><p>Ya, Asisten Pintar dirancang agar responsif dan dapat digunakan di perangkat desktop maupun mobile. Namun, beberapa fitur seperti perekaman audio sistem mungkin memiliki keterbatasan di browser mobile tertentu.</p></div>
+                        </details>
+                        <details>
+                            <summary>10. Siapa yang harus saya hubungi jika menemukan masalah?</summary>
+                            <div><p>Jika Anda mengalami masalah teknis atau memiliki pertanyaan, jangan ragu untuk menghubungi tim support kami.</p></div>
+                        </details>
+                    </div>
+
+                    <h3>Kontak & Dukungan</h3>
+                    <p>
+                        Untuk pertanyaan, masukan, atau laporan bug, silakan kirim email ke tim dukungan kami di:
+                        <a href="mailto:support@isparmo.com" class="text-indigo-600 font-semibold hover:underline">support@isparmo.com</a>
+                    </p>
+                </section>
             </div>
 
-            <h3>Butuh Bantuan Lebih Lanjut?</h3>
-            <p>Jika Anda mengalami kesulitan teknis atau memiliki pertanyaan yang tidak terjawab di sini, jangan ragu untuk menghubungi tim support kami melalui email di <a href="mailto:support@isparmo.com" class="text-indigo-600 hover:underline">support@isparmo.com</a>.</p>
-        </div>
+            <!-- English Content -->
+            <div id="content-en" class="hidden">
+                <section class="mb-10 content-section">
+                    <h2 class="text-3xl font-bold text-indigo-700 mb-4">Asisten Pintar Help Center</h2>
+                    
+                    <h3>Application Description</h3>
+                    <p>
+                        <strong>Asisten Pintar</strong> is your personal assistant for automated minute-taking. This application is designed to transform spoken conversations and visual materials into neat, structured, and ready-to-use written notes. With advanced AI technology, you can focus on the discussion while Asisten Pintar does the note-taking.
+                    </p>
 
-        <!-- English Content -->
-        <div id="content-en" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md hidden">
-            <h3>Detailed Application Guide</h3>
-            <ol class="list-decimal space-y-4">
-                <li>
-                    <strong>Fill In Event Information:</strong> Start by filling in the event details such as Event Name, Theme, Speaker, etc. This information will be used to provide context for the AI summary.
-                </li>
-                <li>
-                    <strong>Collect Notes:</strong> You can gather notes from various sources:
-                    <ul class="list-disc mt-2">
-                        <li>Click <b>"Start Voice Recording"</b> to transcribe conversations live.</li>
-                        <li>Use the <b>"Take Photo"</b> or <b>"Take Screenshot"</b> buttons to capture visual information.</li>
-                        <li>Type important notes in the <b>manual note</b> field and click "Add Note".</li>
+                    <h3>Who is This Application For?</h3>
+                    <p>This application is ideal for:</p>
+                    <ul>
+                        <li><strong>Professionals & Employees:</strong> To efficiently record the outcomes of meetings, team discussions, or brainstorming sessions.</li>
+                        <li><strong>Students:</strong> To record and summarize lectures, seminars, or study group materials.</li>
+                        <li><strong>Journalists & Researchers:</strong> To quickly transcribe interviews or field recordings.</li>
+                        <li><strong>Anyone</strong> who wants to turn conversations into useful notes without the hassle of manual typing.</li>
                     </ul>
-                </li>
-                <li>
-                    <strong>Review the Combined Transcript:</strong> All your inputs (voice, image, text) will appear in real-time in the "Combined Transcript" column.
-                </li>
-                <li>
-                    <strong>Create Summary:</strong> Once all information is collected, click the <b>"Create Summary"</b> button. The AI will analyze all the data and generate structured notes in the "Summary Result" section.
-                </li>
-                 <li>
-                    <strong>Save & Export:</strong> Use the buttons in the "Save Report" section to download your work in your desired format (PDF, TXT, MD, Audio, or a ZIP file of photos).
-                </li>
-            </ol>
 
-            <h3>Frequently Asked Questions (F.A.Q)</h3>
-            <div class="space-y-4">
-                <div>
-                    <p class="faq-question">1. Is my data secure and stored on the server?</p>
-                    <p>Your privacy is our priority. We do not permanently store your input data (audio, images). Data is only processed temporarily to generate the output and is then deleted. See our <a href="privacy.html" class="text-indigo-600 hover:underline">Privacy Policy</a> for details.</p>
-                </div>
-                <div>
-                    <p class="faq-question">2. What audio format is supported?</p>
-                    <p>The application records audio in WebM format with the Opus codec, which is efficient and widely supported by modern browsers. Currently, we do not support uploading external audio files.</p>
-                </div>
-                <div>
-                    <p class="faq-question">3. Why is the transcription sometimes inaccurate?</p>
-                    <p>Transcription accuracy depends on several factors, such as microphone quality, background noise, and speaker clarity. for best results, use the app in a quiet environment with clear speech.</p>
-                </div>
-                <div>
-                    <p class="faq-question">4. Is there a limit to the recording duration?</p>
-                    <p>Technically, there is no duration limit, but there is a file size limit of around 24 MB to maintain performance. The app will provide a warning and stop automatically if it approaches this limit. For very long sessions, it is recommended to make multiple recordings.</p>
-                </div>
-                <div>
-                    <p class="faq-question">5. Can I edit the transcript before summarizing?</p>
-                    <p>Currently, a feature to directly edit the transcript is not available. However, you can copy the text from the transcript box, correct it in another text editor, and then add it back as a "Manual Note".</p>
-                </div>
+                    <h3>Why Use Asisten Pintar?</h3>
+                    <ul>
+                        <li><strong>Save Time:</strong> Automate the time-consuming process of transcription and summarization.</li>
+                        <li><strong>Full Focus:</strong> Participate more actively in discussions without worrying about missing key points.</li>
+                        <li><strong>Comprehensive Notes:</strong> Combine notes from audio, images, and manual typing into a single, cohesive document.</li>
+                        <li><strong>Structured Output:</strong> Get summaries relevant to your event type, complete with decision points and action items.</li>
+                    </ul>
+
+                    <h3>How to Use the Application</h3>
+                    <p>Using Asisten Pintar is very easy. Follow these steps:</p>
+                    <ol>
+                        <li><strong>Fill in Event Information:</strong> Start by entering event details like Event Name, Theme, Date, etc. This helps the AI create better context for your summary.</li>
+                        <li><strong>Collect Notes (Input):</strong> This is the main step. You can gather notes from various sources:
+                            <ul>
+                                <li><strong>Record Audio:</strong> Select the audio source (Microphone or System Audio), then click <strong>"Start Recording"</strong>. You can pause or stop the session at any time.</li>
+                                <li><strong>Take Photo/Screenshot:</strong> Use the <strong>"Take Photo"</strong> (using the device camera) or <strong>"Take Screenshot"</strong> (capturing the screen) buttons to add visual context.</li>
+                                <li><strong>Upload Images:</strong> Upload relevant images or presentation slides from your device.</li>
+                                <li><strong>Manual Notes:</strong> Type additional notes or key points in the provided text area.</li>
+                            </ul>
+                        </li>
+                        <li><strong>View Combined Transcript:</strong> All your inputs (transcribed audio, text from images, and manual notes) will appear in real-time in the "Combined Transcript" box.</li>
+                        <li><strong>Create Summary:</strong> Once all notes are collected, click the <strong>"Create Summary"</strong> button. The AI will process the entire transcript and generate a smart summary in the "Summary Result" section.</li>
+                        <li><strong>Save & Export:</strong> After the summary is generated, you can download the full report in TXT, Markdown, print it as a PDF, or download all audio and image files as a ZIP archive.</li>
+                    </ol>
+
+                    <!-- === NEW SECTION === -->
+                    <h3>Key Features Explained</h3>
+                    <h4>Event Information</h4>
+                    <p>Filling this section provides crucial context for the AI. The better the AI understands your event (e.g., it's a 'Meeting' about the 'Quarterly Budget'), the more relevant and accurate the summary will be.</p>
+                    <h4>Audio Recording</h4>
+                    <ul>
+                        <li><strong>Microphone:</strong> Records sound from your room, ideal for in-person meetings or when you are speaking.</li>
+                        <li><strong>System Audio:</strong> Records the sound coming out of your computer's speakers, perfect for online meetings (Zoom, Meet), webinars, or videos.</li>
+                        <li><strong>Both:</strong> Combines both microphone and system audio, ideal if you want to record an online meeting and your own comments simultaneously.</li>
+                    </ul>
+                    <h4>Take Photo & Upload Image</h4>
+                    <p>This feature uses OCR (Optical Character Recognition) technology to 'read' text from images. It's very useful for capturing text from presentation slides, whiteboards, or physical documents without retyping.</p>
+                    <h4>Create Summary</h4>
+                    <p>This is the core of Asisten Pintar. When you click this button, the AI reads all the collected text and creates a professional, structured summary based on the 'Event Theme' you selected. For example, for a 'Meeting' theme, the AI will focus on finding decision points and action items.</p>
+                    <h4>Save & Export</h4>
+                    <ul>
+                        <li><strong>Save .txt:</strong> Generates a plain text file (like Notepad) that can be opened on almost any device.</li>
+                        <li><strong>Save .md (Markdown):</strong> This is a special file format. Think of it like a plain text file but with a little formatting 'magic'. The text inside can have headings, bold text, and bullet points, yet it remains very lightweight and easy to share. An <code>.md</code> file is very useful if you want to copy and paste the minutes into an email, blog, WhatsApp, or other platforms because its formatting will stay neat.</li>
+                        <li><strong>Print Report (.pdf):</strong> Creates a print-ready, A4-sized PDF file, suitable for sharing as a formal report.</li>
+                        <li><strong>Save Full Audio:</strong> Downloads all your audio recording segments into a single file.</li>
+                        <li><strong>Save Photos (.zip):</strong> Packages all the images you've captured or uploaded into a single ZIP file for easy download and archiving.</li>
+                    </ul>
+                    <!-- === END NEW SECTION === -->
+
+                    <h3>Application Limitations</h3>
+                    <ul>
+                        <li><strong>Audio & Image Quality:</strong> The accuracy of transcription and text extraction heavily depends on the input quality. Ensure the audio is clear and images are not blurry.</li>
+                        <li><strong>Internet Connection:</strong> This application requires a stable internet connection to communicate with the AI servers.</li>
+                        <li><strong>Temporary Storage:</strong> The application uses your browser's storage (LocalStorage) to save your session. If you clear your browser cache, unsaved session data will be lost.</li>
+                    </ul>
+
+                    <h3>F.A.Q (Frequently Asked Questions)</h3>
+                    <div class="space-y-4">
+                        <details>
+                            <summary>1. Is my data secure?</summary>
+                            <div><p>Your data security is our priority. We do not store your audio recordings or images on our servers after they are processed. All data is used solely for transcription and summarization during your active session. For more details, please read our <a href="https://asistenpintarku.isparmo.com/privacy" target="_blank" class="text-indigo-600 hover:underline">Privacy Policy</a>.</p></div>
+                        </details>
+                        <details>
+                            <summary>2. Is this application free?</summary>
+                            <div><p>Currently, Asisten Pintar is available for free. However, we may introduce premium plans in the future. The use of the application is subject to our <a href="https://asistenpintarku.isparmo.com/terms" target="_blank" class="text-indigo-600 hover:underline">Terms of Service</a>.</p></div>
+                        </details>
+                        <details>
+                            <summary>3. Why do I need to grant microphone/screen permissions?</summary>
+                            <div><p>Permission is required for the browser to access your microphone for audio recording or to capture your screen for the screenshot feature. The application will only access them when you click the corresponding buttons.</p></div>
+                        </details>
+                        <details>
+                            <summary>4. What file formats are supported for upload?</summary>
+                            <div><p>For images, we support common formats like JPG, PNG, and WEBP. For audio, internal recordings are saved as WEBM.</p></div>
+                        </details>
+                        <details>
+                            <summary>5. How long can I record audio?</summary>
+                            <div><p>The application is designed to record in 20-minute segments. After 20 minutes, the recording is automatically processed, and a new session begins, allowing you to record for extended periods without interruption.</p></div>
+                        </details>
+                        <details>
+                            <summary>6. Why is my transcript not 100% accurate?</summary>
+                            <div><p>Accuracy is influenced by many factors, such as background noise, speaker clarity, and complex technical terms. We are continuously working to improve our AI models for better results.</p></div>
+                        </details>
+                        <details>
+                            <summary>7. Can I edit the transcript results?</summary>
+                            <div><p>Currently, a direct editing feature within the app is not available. However, you can copy the text from the transcript box or download the TXT/MD file to edit it in another application.</p></div>
+                        </details>
+                        <details>
+                            <summary>8. What happens if I close the browser mid-session?</summary>
+                            <div><p>The application saves your session status (transcripts and images) in your browser's storage. If you reopen the application in the same browser, your data should reappear. However, any ongoing recording will stop.</p></div>
+                        </details>
+                        <details>
+                            <summary>9. Does the app work on mobile phones?</summary>
+                            <div><p>Yes, Asisten Pintar is designed to be responsive and can be used on both desktop and mobile devices. However, some features like system audio recording may have limitations on certain mobile browsers.</p></div>
+                        </details>
+                        <details>
+                            <summary>10. Who should I contact if I encounter a problem?</summary>
+                            <div><p>If you experience technical issues or have any questions, please do not hesitate to contact our support team.</p></div>
+                        </details>
+                    </div>
+
+                    <h3>Contact & Support</h3>
+                    <p>
+                        For questions, feedback, or bug reports, please email our support team at:
+                        <a href="mailto:support@isparmo.com" class="text-indigo-600 font-semibold hover:underline">support@isparmo.com</a>
+                    </p>
+                </section>
             </div>
 
-            <h3>Need Further Assistance?</h3>
-            <p>If you encounter technical difficulties or have questions not answered here, please do not hesitate to contact our support team via email at <a href="mailto:support@isparmo.com" class="text-indigo-600 hover:underline">support@isparmo.com</a>.</p>
-        </div>
+        </main>
         
         <footer class="text-center mt-8 text-sm text-slate-500">
-            <p id="footer-text">Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.</p>
+             <p>&copy; 2025 Asisten Pintar. All rights reserved.</p>
+             <p class="mt-1">A project by <a href="https://www.isparmo.com" target="_blank" class="font-semibold text-indigo-600 hover:underline">Ir. Isparmo</a></p>
         </footer>
     </div>
 
     <script>
-        const btnId = document.getElementById('btn-id');
-        const btnEn = document.getElementById('btn-en');
         const contentId = document.getElementById('content-id');
         const contentEn = document.getElementById('content-en');
-        const mainTitle = document.getElementById('main-title');
-        const mainSubtitle = document.getElementById('main-subtitle');
-        const footerText = document.getElementById('footer-text');
+        const btnId = document.getElementById('btn-id');
+        const btnEn = document.getElementById('btn-en');
 
-        btnId.addEventListener('click', () => {
-            contentId.classList.remove('hidden');
-            contentEn.classList.add('hidden');
-            btnId.classList.add('active');
-            btnEn.classList.remove('active');
-            document.documentElement.lang = 'id';
-            mainTitle.textContent = 'Pusat Bantuan';
-            mainSubtitle.textContent = 'Asisten Pintar App';
-            footerText.textContent = 'Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.';
-        });
+        function switchLanguage(lang) {
+            if (lang === 'id') {
+                contentId.classList.remove('hidden');
+                contentEn.classList.add('hidden');
+                btnId.classList.add('active');
+                btnEn.classList.remove('active');
+                document.documentElement.lang = 'id';
+            } else {
+                contentId.classList.add('hidden');
+                contentEn.classList.remove('hidden');
+                btnId.classList.remove('active');
+                btnEn.classList.add('active');
+                document.documentElement.lang = 'en';
+            }
+            localStorage.setItem('preferredLanguage', lang);
+        }
 
-        btnEn.addEventListener('click', () => {
-            contentEn.classList.remove('hidden');
-            contentId.classList.add('hidden');
-            btnEn.classList.add('active');
-            btnId.classList.remove('active');
-            document.documentElement.lang = 'en';
-            mainTitle.textContent = 'Help Center';
-            mainSubtitle.textContent = 'Asisten Pintar App';
-            footerText.textContent = 'Documentation for Asisten Pintar - Meta-Hacktiv8 Hackathon 2025.';
+        // On page load, check for saved language preference
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('preferredLanguage') || 'id';
+            switchLanguage(savedLang);
         });
     </script>
+
 </body>
 </html>
