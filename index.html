@@ -734,6 +734,7 @@
             }
         }
         
+        // === PERUBAHAN DI SINI: Logika penanganan error upload gambar ===
         async function handleImageUpload(event, type) {
             const files = event.target.files;
             if (!files || files.length === 0) return;
@@ -750,6 +751,11 @@
                 statusLoader.classList.remove('hidden');
 
                 try {
+                    // Pastikan 'file' adalah objek File yang valid
+                    if (!(file instanceof Blob)) {
+                        throw new Error("Tipe file tidak valid.");
+                    }
+
                     const compressedFile = await window.imageCompression(file, options);
                     log(`File terkompresi: ${compressedFile.name}, ukuran: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`, 'SUCCESS');
 
@@ -768,8 +774,9 @@
                     };
                     reader.readAsDataURL(compressedFile);
                 } catch (error) {
-                    log(`Gagal mengompres gambar: ${error.message}`, 'ERROR');
-                    alert(`Terjadi kesalahan saat memproses gambar: ${file.name}. Mungkin file tersebut bukan format gambar yang didukung.`);
+                    // Log error yang lebih deskriptif
+                    log(`Gagal mengompres gambar: ${error.message || 'Error tidak diketahui'}`, 'ERROR');
+                    alert(`Terjadi kesalahan saat memproses gambar: ${file.name}. Mungkin file tersebut bukan format gambar yang didukung atau rusak.`);
                 } finally {
                     statusLoader.classList.add('hidden');
                     statusSpan.textContent = 'Siap...';
@@ -777,6 +784,7 @@
             }
             event.target.value = ''; 
         }
+        // === AKHIR PERUBAHAN ===
 
         async function analyzeScreenshot(file) {
             statusSpan.textContent = 'Menganalisis gambar...';
@@ -960,7 +968,6 @@
                     .replace(/\[.*?\]:\n/g, (match) => `<strong>${match.slice(0, -2)}</strong>\n`)
                     .replace(/---/g, '\n<hr>\n');
                 const transcriptHtml = `<h2>Transkrip Lengkap</h2><pre style="white-space: pre-wrap; word-wrap: break-word;">${transcriptText}</pre>`;
-                // === PERUBAHAN DI SINI: Menambahkan size: A4 ===
                 const printStyles = `
                     body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #333; }
                     .container { width: 100%; margin: 0 auto; }
@@ -971,7 +978,6 @@
                     ul, ol { page-break-inside: avoid; }
                     @page { size: A4; margin: 1in; }
                 `;
-                // === AKHIR PERUBAHAN ===
 
                 const printWindow = window.open('', '_blank');
                 printWindow.document.write(`
