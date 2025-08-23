@@ -142,7 +142,7 @@
                 </div>
                  <div class="mt-auto pt-4 text-center text-sm text-slate-600 h-5 flex items-center justify-center space-x-2">
                     <div id="status-loader" class="loader !w-4 !h-4 !border-2 hidden"></div>
-                    <span id="status">Siap Merekam...</span>
+                    <span id="status">Siap...</span>
                 </div>
             </div>
 
@@ -534,7 +534,9 @@
                     recordButton.classList.remove('sm:col-span-1');
                     recordButton.classList.add('sm:col-span-2');
                     pauseButton.classList.add('hidden');
-                    statusSpan.textContent = 'Sesi rekaman dihentikan.';
+                    // === PERUBAHAN DI SINI ===
+                    statusSpan.textContent = 'Menghentikan sesi... Menunggu transkrip terakhir.';
+                    // === AKHIR PERUBAHAN ===
                     log('Sesi rekaman berkelanjutan dihentikan oleh pengguna.', 'INFO');
                 } catch {
                     log('Penghentian rekaman dibatalkan.', 'INFO');
@@ -641,7 +643,7 @@
                 } else {
                     if (activeStream) activeStream.getTracks().forEach(track => track.stop());
                     log('Stream audio dihentikan.', 'INFO');
-                    statusLoader.classList.add('hidden');
+                    // statusLoader will be hidden by the final transcribeAudio call
                 }
             };
             
@@ -730,11 +732,15 @@
                  if(chunk) chunk.status = 'error';
             } finally {
                  renderAudioChunks();
-                 statusSpan.textContent = `Siap...`;
+                 // === PERUBAHAN DI SINI ===
+                 if (!isContinuousRecording) {
+                    statusSpan.textContent = 'Sesi dihentikan. Transkripsi selesai.';
+                    statusLoader.classList.add('hidden');
+                 }
+                 // === AKHIR PERUBAHAN ===
             }
         }
         
-        // === PERUBAHAN DI SINI: Logika penanganan error upload gambar ===
         async function handleImageUpload(event, type) {
             const files = event.target.files;
             if (!files || files.length === 0) return;
@@ -751,7 +757,6 @@
                 statusLoader.classList.remove('hidden');
 
                 try {
-                    // Pastikan 'file' adalah objek File yang valid
                     if (!(file instanceof Blob)) {
                         throw new Error("Tipe file tidak valid.");
                     }
@@ -774,7 +779,6 @@
                     };
                     reader.readAsDataURL(compressedFile);
                 } catch (error) {
-                    // Log error yang lebih deskriptif
                     log(`Gagal mengompres gambar: ${error.message || 'Error tidak diketahui'}`, 'ERROR');
                     alert(`Terjadi kesalahan saat memproses gambar: ${file.name}. Mungkin file tersebut bukan format gambar yang didukung atau rusak.`);
                 } finally {
@@ -784,7 +788,6 @@
             }
             event.target.value = ''; 
         }
-        // === AKHIR PERUBAHAN ===
 
         async function analyzeScreenshot(file) {
             statusSpan.textContent = 'Menganalisis gambar...';
@@ -1200,4 +1203,4 @@
 
     </script>
 </body>
-</html>
+</ht
