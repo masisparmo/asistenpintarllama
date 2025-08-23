@@ -534,9 +534,11 @@
                     recordButton.classList.remove('sm:col-span-1');
                     recordButton.classList.add('sm:col-span-2');
                     pauseButton.classList.add('hidden');
+                    // === PERUBAHAN DI SINI ===
                     recordingIndicator.classList.add('hidden');
                     statusSpan.textContent = 'Menghentikan sesi... Menunggu transkrip terakhir.';
                     statusLoader.classList.remove('hidden');
+                    // === AKHIR PERUBAHAN ===
                     log('Sesi rekaman berkelanjutan dihentikan oleh pengguna.', 'INFO');
                 } catch {
                     log('Penghentian rekaman dibatalkan.', 'INFO');
@@ -738,7 +740,7 @@
                         statusLoader.classList.add('hidden');
                     }
                  } else {
-                     statusSpan.textContent = `Merekam Bagian ${chunkCount + 1}...`;
+                     statusSpan.textContent = `Merekam Bagian ${chunkCount}...`;
                  }
             }
         }
