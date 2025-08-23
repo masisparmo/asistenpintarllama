@@ -6,7 +6,7 @@
     <title>Asisten Pintar - Aplikasi Pencatat Notulen Powered by Ai</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
     <link rel="icon" href="/path/to/favicon.ico">
@@ -201,7 +201,7 @@
                 <span class="text-slate-400">|</span>
                 <a href="https://asistenpintarku.isparmo.com/privacy.html" target="_blank" class="hover:underline">Kebijakan Privasi</a>
             </div>
-            <p><b>ASISTEN PINTAR</b> dibuat oleh <a href="https://www.isparmo.com/" target="_blank" class="font-semibold text-indigo-600 hover:underline">ISPARMO</a> untuk Hackathon Meta-Hacktiv8 2025.</p>
+            <p>Dibuat oleh <a href="https://github.com/masisparmo" target="_blank" class="font-semibold text-indigo-600 hover:underline">masisparmo</a> untuk Hackathon Meta-Hacktiv8 2025.</p>
         </footer>
     </div>
 
@@ -534,9 +534,9 @@
                     recordButton.classList.remove('sm:col-span-1');
                     recordButton.classList.add('sm:col-span-2');
                     pauseButton.classList.add('hidden');
-                    // === PERUBAHAN DI SINI ===
+                    recordingIndicator.classList.add('hidden');
                     statusSpan.textContent = 'Menghentikan sesi... Menunggu transkrip terakhir.';
-                    // === AKHIR PERUBAHAN ===
+                    statusLoader.classList.remove('hidden');
                     log('Sesi rekaman berkelanjutan dihentikan oleh pengguna.', 'INFO');
                 } catch {
                     log('Penghentian rekaman dibatalkan.', 'INFO');
@@ -643,7 +643,6 @@
                 } else {
                     if (activeStream) activeStream.getTracks().forEach(track => track.stop());
                     log('Stream audio dihentikan.', 'INFO');
-                    // statusLoader will be hidden by the final transcribeAudio call
                 }
             };
             
@@ -732,12 +731,15 @@
                  if(chunk) chunk.status = 'error';
             } finally {
                  renderAudioChunks();
-                 // === PERUBAHAN DI SINI ===
                  if (!isContinuousRecording) {
-                    statusSpan.textContent = 'Sesi dihentikan. Transkripsi selesai.';
-                    statusLoader.classList.add('hidden');
+                    const allTranscribed = allRecordedBlobs.every(c => c.status === 'success' || c.status === 'error');
+                    if (allTranscribed) {
+                        statusSpan.textContent = 'Sesi dihentikan. Transkripsi selesai.';
+                        statusLoader.classList.add('hidden');
+                    }
+                 } else {
+                     statusSpan.textContent = `Merekam Bagian ${chunkCount + 1}...`;
                  }
-                 // === AKHIR PERUBAHAN ===
             }
         }
         
