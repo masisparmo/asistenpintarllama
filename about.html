@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tentang Aplikasi - Asisten Pintar</title>
+    <title>Tentang Aplikasi Web Asisten Pintar / About Asisten Pintar Web App (Dokumen Teknis / Technical Documentation)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,202 +11,389 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-        }
-        .content-section h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 0.5rem;
-        }
-        .content-section p, .content-section li {
-            line-height: 1.75;
-        }
-        .content-section ul {
-            list-style-type: disc;
-            margin-left: 1.5rem;
-            margin-bottom: 1rem;
+            background-color: #f1f5f9;
         }
         .lang-btn.active {
             background-color: #4f46e5;
             color: white;
         }
-        .tech-badge {
-            display: inline-block;
-            background-color: #eef2ff;
-            color: #4338ca;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
+        .content-section h3 {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 700;
+            color: #334155; /* slate-800 */
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0; /* slate-200 */
+        }
+        .content-section h4 {
+            font-size: 1.125rem; /* 18px */
+            font-weight: 600;
+            color: #475569; /* slate-600 */
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .content-section p, .content-section li {
+            color: #475569; /* slate-600 */
+            line-height: 1.75;
+            margin-bottom: 0.5rem;
+        }
+        .content-section ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+         .content-section code, .content-section pre {
+            background-color: #e2e8f0;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
             font-size: 0.875rem;
-            font-weight: 500;
-            margin: 0.25rem;
+        }
+        .content-section pre {
+            padding: 1rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="text-slate-800">
 
-    <div class="container mx-auto max-w-4xl p-4 sm:p-8">
-        <header class="text-center mb-8">
-            <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-slate-900">Tentang Asisten Pintar</h1>
-            <p id="main-subtitle" class="text-slate-600 mt-2">Sebuah Alat Pencatat Cerdas</p>
+    <div class="container mx-auto max-w-4xl p-4 sm:p-6 md:p-8">
+        
+        <!-- Header and Language Switcher -->
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold text-slate-900">Asisten Pintar</h1>
+            <div class="flex space-x-1 border border-slate-300 rounded-lg p-1">
+                <button id="btn-id" class="lang-btn px-3 py-1 text-sm font-semibold rounded-md transition-colors" onclick="switchLanguage('id')">ID</button>
+                <button id="btn-en" class="lang-btn px-3 py-1 text-sm font-semibold rounded-md transition-colors" onclick="switchLanguage('en')">EN</button>
+            </div>
         </header>
 
-        <!-- Language Switcher -->
-        <div class="flex justify-center mb-8 bg-slate-200 p-1 rounded-lg">
-            <button id="btn-id" class="lang-btn active w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">Bahasa Indonesia</button>
-            <button id="btn-en" class="lang-btn w-full py-2 px-4 rounded-md font-semibold transition-colors duration-300">English</button>
-        </div>
+        <main class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200">
+            
+            <!-- Indonesian Content -->
+            <div id="content-id">
+                <section class="mb-10 content-section">
+                    <h2 class="text-3xl font-bold text-indigo-700 mb-4">Dokumentasi Teknis Asisten Pintar</h2>
+                    
+                    <h3>1. Pendahuluan</h3>
+                    <p>
+                        <strong>Asisten Pintar</strong> adalah sebuah aplikasi web canggih yang dirancang untuk mengotomatiskan proses pencatatan notulen selama rapat, seminar, atau diskusi. Aplikasi ini memanfaatkan kekuatan Large Language Model (LLM) untuk menyediakan transkripsi audio, ekstraksi teks dari gambar (OCR), dan pembuatan ringkasan yang cerdas dan terstruktur.
+                    </p>
+                    <h4>Fitur Utama:</h4>
+                    <ul>
+                        <li><strong>Perekaman Audio Multi-Sumber:</strong> Mampu merekam suara dari mikrofon, audio sistem (misalnya dari Zoom atau Google Meet), atau keduanya secara bersamaan.</li>
+                        <li><strong>Transkripsi Audio ke Teks:</strong> Menggunakan model <strong>Whisper Large v3 Turbo</strong> via Groq API untuk mengubah rekaman suara menjadi teks dengan akurasi tinggi.</li>
+                        <li><strong>Ekstraksi Teks dari Gambar (OCR):</strong> Menggunakan model <strong>Llama 4 Scout</strong> via Groq API untuk mengenali dan mengekstrak teks dari gambar atau tangkapan layar.</li>
+                        <li><strong>Ringkasan Cerdas & Kontekstual:</strong> Menggunakan model <strong>Llama 4 Scout via Groq API</strong> untuk menghasilkan ringkasan terstruktur yang disesuaikan dengan tema acara (rapat, seminar, wawancara, dll.), mengidentifikasi poin-poin penting, keputusan, dan item aksi.</li>
+                        <li><strong>Ekspor Multi-Format:</strong> Memungkinkan pengguna untuk menyimpan laporan lengkap dalam format <code>.txt</code>, <code>.md</code>, atau mencetaknya sebagai <code>.pdf</code>. Selain itu, semua file audio dan gambar dapat diunduh dalam format <code>.zip</code>.</li>
+                    </ul>
 
-        <!-- Indonesian Content -->
-        <div id="content-id" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md">
-            <h3>Deskripsi</h3>
-            <p>Asisten Pintar adalah aplikasi web cerdas yang dirancang untuk mengubah rapat, kuliah, atau sesi wawancara menjadi ringkasan yang terstruktur dan actionable. Dengan menggabungkan berbagai sumber input seperti suara, gambar, dan teks, aplikasi ini secara otomatis membuat transkrip dan notulensi yang komprehensif.</p>
+                    <h3>2. Arsitektur Sistem</h3>
+                    <h4>2.1 Diagram Arsitektur</h4>
+                    <pre>
+[Frontend: Browser (index.html)]
+ |
+ |--- Perekaman Audio/Gambar (MediaRecorder, getUserMedia)
+ |--- Interaksi Pengguna (UI Events)
+ |
+ | REST API (HTTPS, JSON, FormData)
+ v
+[Backend: Node.js on Cloud Run (index.js)]
+ |
+ |--- 1. /api/transcribe
+ |--- 2. /api/analyze-image
+ |--- 3. /api/summarize
+ |--- 4. /api/generate-zip
+ |
+ | Groq Cloud API
+ v
+[Model AI: Llama-4 Scout, Whisper V3 Large Turbo]
+                    </pre>
+                    <h4>2.2 Komponen Utama</h4>
+                    <ul>
+                        <li><strong>Frontend (Client-Side):</strong> Dibuat dengan <code>index.html</code>. Bertanggung jawab untuk menangani seluruh antarmuka pengguna (UI), mengelola proses perekaman audio menggunakan Web API, menangani upload dan preview gambar, serta memformat dan menampilkan hasil akhir. Menggunakan <strong>LocalStorage</strong> untuk menyimpan status sesi sementara.</li>
+                        <li><strong>Backend (Server-Side):</strong> Dibuat dengan <code>index.js</code> (Node.js & Express.js). Bertindak sebagai perantara antara frontend dan Groq API, menyediakan endpoint RESTful untuk memproses file dan mengembalikan hasilnya.</li>
+                        <li><strong>Layanan AI (Groq API):</strong> Menggunakan model <code>whisper-large-v3-turbo</code> untuk transkripsi dan <code>meta-llama/llama-4-scout-17b-16e-instruct</code> untuk OCR dan ringkasan.</li>
+                    </ul>
 
-            <h3>Untuk Siapa Aplikasi Ini?</h3>
-            <p>Profesional, Mahasiswa, Jurnalis, Peneliti, dan siapa saja yang perlu mendokumentasikan diskusi atau presentasi secara efisien tanpa kehilangan detail penting.</p>
+                    <h3>3. Teknologi yang Digunakan</h3>
+                    <ul>
+                        <li><strong>Frontend:</strong> TailwindCSS, Vanilla JS (ES6 Modules), Web APIs (MediaRecorder, getUserMedia), browser-image-compression.</li>
+                        <li><strong>Backend:</strong> Node.js, Express.js, groq-sdk, multer, archiver.</li>
+                        <li><strong>Model AI:</strong> Whisper V3 Large Turbo, Llama 4 Scout 17B Instruct.</li>
+                    </ul>
 
-            <h3>Mengapa Memakai Aplikasi Ini?</h3>
-            <ul>
-                <li><b>Hemat Waktu:</b> Secara drastis mengurangi waktu yang dihabiskan untuk membuat notulensi manual.</li>
-                <li><b>Tingkatkan Fokus:</b> Memungkinkan Anda untuk fokus penuh pada diskusi tanpa khawatir harus mencatat setiap detail.</li>
-                <li><b>Hasil Terstruktur:</b> Dapatkan output yang rapi, terstruktur, dan mudah dibagikan kepada tim atau kolega.</li>
-                <li><b>Multi-Modal:</b> Mengubah informasi verbal dan visual menjadi teks yang dapat dicari dan dianalisis.</li>
-            </ul>
+                    <h3>4. API Backend</h3>
+                    <h4>4.1 Transkripsi Audio</h4>
+                    <ul>
+                        <li><strong>Endpoint:</strong> <code>POST /api/transcribe</code></li>
+                        <li><strong>Request:</strong> <code>FormData</code> dengan field <code>file</code> (audio).</li>
+                    </ul>
+                    <h4>4.2 Analisis Gambar (OCR)</h4>
+                    <ul>
+                        <li><strong>Endpoint:</strong> <code>POST /api/analyze-image</code></li>
+                        <li><strong>Request:</strong> <code>FormData</code> dengan field <code>file</code> (gambar).</li>
+                    </ul>
+                    <h4>4.3 Ringkasan Notulen</h4>
+                    <ul>
+                        <li><strong>Endpoint:</strong> <code>POST /api/summarize</code></li>
+                        <li><strong>Request:</strong> JSON body dengan <code>theme</code> dan <code>content</code>.</li>
+                    </ul>
+                    <h4>4.4 Generate ZIP</h4>
+                    <ul>
+                        <li><strong>Endpoint:</strong> <code>POST /api/generate-zip</code></li>
+                        <li><strong>Request:</strong> <code>FormData</code> dengan <code>zipFilename</code> dan multiple <code>file</code>.</li>
+                    </ul>
 
-            <h3>Fitur-fitur Utama</h3>
-            <ul>
-                <li>Perekaman Suara Multi-sumber (Mikrofon & Audio Sistem)</li>
-                <li>Transkripsi Audio Otomatis (Speech-to-Text)</li>
-                <li>Analisis Gambar & Screenshot (Image-to-Text)</li>
-                <li>Input Catatan Manual secara Real-time</li>
-                <li>Peringkasan Cerdas Berbasis AI (didukung oleh model Llama)</li>
-                <li>Ekspor Laporan ke berbagai format (PDF, TXT, MD)</li>
-                <li>Unduh Aset (Rekaman Suara & Kumpulan Foto dalam format .zip)</li>
-            </ul>
+                    <h3>5. Konfigurasi</h3>
+                    <ul>
+                        <li><strong>Backend:</strong> Membutuhkan environment variable <code>GROQ_API_KEY_1</code>, <code>GROQ_API_KEY_2</code>, dst.</li>
+                        <li><strong>Frontend:</strong> URL backend diatur dalam variabel <code>BACKEND_URL</code> di <code>index.html</code>.</li>
+                    </ul>
+                    
+                    <h3>6. Deployment</h3>
+                    <h4>6.1 Local Development</h4>
+                    <ol>
+                        <li><strong>Clone Repository:</strong> <code>git clone &lt;url_repository&gt;</code></li>
+                        <li><strong>Masuk ke Direktori Backend:</strong> <code>cd &lt;nama_direktori&gt;</code></li>
+                        <li><strong>Install Dependencies:</strong> <code>npm install</code></li>
+                        <li><strong>Set Environment Variable:</strong> <code>export GROQ_API_KEY_1="gsk_..."</code></li>
+                        <li><strong>Jalankan Server:</strong> <code>node index.js</code></li>
+                        <li>Buka file <code>index.html</code> di browser.</li>
+                    </ol>
+                    <h4>6.2 Deployment ke Google Cloud Run</h4>
+                    <ol>
+                        <li><strong>Buat Dockerfile</strong> di direktori root backend.</li>
+                        <li><strong>Build Container Image:</strong> <code>docker build -t gcr.io/[PROJECT_ID]/asisten-pintar .</code></li>
+                        <li><strong>Push Image ke GCR:</strong> <code>docker push gcr.io/[PROJECT_ID]/asisten-pintar</code></li>
+                        <li><strong>Deploy ke Cloud Run:</strong>
+                            <pre>gcloud run deploy asisten-pintar-service \
+  --image gcr.io/[PROJECT_ID]/asisten-pintar \
+  --platform managed \
+  --region asia-southeast1 \
+  --allow-unauthenticated \
+  --set-env-vars="GROQ_API_KEY_1=gsk_..."</pre>
+                        </li>
+                    </ol>
 
-            <h3>Teknologi yang Dipakai</h3>
-            <div>
-                <span class="tech-badge">Frontend: HTML5</span>
-                <span class="tech-badge">Styling: Tailwind CSS</span>
-                <span class="tech-badge">Logic: Vanilla JavaScript</span>
-                <span class="tech-badge">Backend: Firebase Functions</span>
-                <span class="tech-badge">Server: Node.js, Express.js</span>
-                <span class="tech-badge">AI/ML: Groq API</span>
-                <span class="tech-badge">Models: Llama 3, Llama 4, Whisper</span>
-                <span class="tech-badge">Hosting: GitHub Pages & Firebase</span>
+                    <h3>7. Testing</h3>
+                    <p>Pengujian manual dapat dilakukan dengan mengikuti alur kerja utama aplikasi:</p>
+                    <ol>
+                        <li>Buka <code>index.html</code> di browser.</li>
+                        <li>Isi informasi acara.</li>
+                        <li>Mulai rekam audio dan pastikan transkrip muncul.</li>
+                        <li>Upload gambar dan pastikan hasil OCR muncul di transkrip.</li>
+                        <li>Klik "Buat Ringkasan" dan verifikasi bahwa ringkasan dalam format Markdown yang benar muncul.</li>
+                        <li>Coba semua tombol unduh (<code>.txt</code>, <code>.md</code>, <code>.pdf</code>, audio, <code>.zip</code>) dan pastikan file yang dihasilkan benar.</li>
+                    </ol>
+
+                    <h3>8. Limitasi & Catatan</h3>
+                    <ul>
+                        <li><strong>Kualitas Input:</strong> Akurasi transkripsi dan OCR sangat bergantung pada kualitas audio (bebas noise) dan gambar (jelas dan tidak buram).</li>
+                        <li><strong>Potensi Bias LLM:</strong> Hasil ringkasan yang dihasilkan oleh AI mungkin mengandung bias atau halusinasi. Hasilnya harus selalu ditinjau oleh manusia untuk akurasi final.</li>
+                        <li><strong>Manajemen Biaya:</strong> Penggunaan Groq API dihitung berdasarkan penggunaan token. Fitur deteksi bahasa Indonesia ditambahkan untuk menghemat token dengan menghindari terjemahan yang tidak perlu.</li>
+                        <li><strong>Timeout:</strong> Proses transkripsi dan ringkasan memiliki batas waktu untuk mencegah proses yang berjalan terlalu lama dan memakan biaya.</li>
+                    </ul>
+
+                    <h3>9. Rencana Pengembangan</h3>
+                    <ul>
+                        <li>Dukungan Multi-Bahasa.</li>
+                        <li>Integrasi dengan Google Docs / Notion.</li>
+                        <li>Integrasi real-time dengan Zoom/Meet API.</li>
+                        <li>Manajemen Sesi di cloud.</li>
+                    </ul>
+                    
+                    <h3>10. Kontak Developer</h3>
+                    <div class="text-slate-600 leading-relaxed bg-slate-50 p-6 rounded-xl border border-slate-200">
+                        <p class="font-bold text-slate-700">Ir. Isparmo</p>
+                        <p>Website: <a href="http://www.isparmo.com" target="_blank" class="text-indigo-600 hover:underline">www.isparmo.com</a></p>
+                        <p>Email: <a href="mailto:mail@isparmo.com" class="text-indigo-600 hover:underline">mail@isparmo.com</a></p>
+                        <p>HP/WA: 0812 108 3060</p>
+                    </div>
+                </section>
             </div>
 
-            <h3>Lima Ide Pengembangan Fitur</h3>
-            <ol class="list-decimal pl-5">
-                <li><b>Identifikasi Pembicara (Speaker Diarization):</b> Membedakan dan memberi label siapa yang berbicara dalam transkrip secara otomatis.</li>
-                <li><b>Integrasi Kalender:</b> Otomatis menarik detail acara (judul, peserta) dari Google Calendar atau Outlook untuk pengisian form.</li>
-                <li><b>Kolaborasi Real-time:</b> Memungkinkan beberapa pengguna untuk menambahkan catatan dan gambar ke sesi yang sama secara bersamaan.</li>
-                <li><b>Pencarian Universal:</b> Fitur pencarian canggih untuk menemukan kembali informasi dari semua sesi sebelumnya yang tersimpan di cloud.</li>
-                <li><b>Ekspor ke Platform Lain:</b> Tombol sekali klik untuk mengirim *action items* atau ringkasan ke Trello, Asana, atau Slack.</li>
-            </ol>
+            <!-- English Content -->
+            <div id="content-en" class="hidden">
+                 <section class="mb-10 content-section">
+                    <h2 class="text-3xl font-bold text-indigo-700 mb-4">Asisten Pintar Technical Documentation</h2>
+                    
+                    <h3>1. Introduction</h3>
+                    <p>
+                        <strong>Asisten Pintar</strong> is an advanced web application designed to automate the process of taking minutes during meetings, seminars, or discussions. It leverages the power of Large Language Models (LLM) to provide audio transcription, text extraction from images (OCR), and intelligent, structured summaries.
+                    </p>
+                    <h4>Key Features:</h4>
+                    <ul>
+                        <li><strong>Multi-Source Audio Recording:</strong> Capable of recording from a microphone, system audio (e.g., from Zoom or Google Meet), or both simultaneously.</li>
+                        <li><strong>Audio-to-Text Transcription:</strong> Utilizes the <strong>Whisper Large v3 Turbo</strong> model via the Groq API to convert audio into highly accurate text.</li>
+                        <li><strong>Text Extraction from Images (OCR):</strong> Employs the <strong>Llama 4 Scout</strong> model via the Groq API to recognize and extract text from images or screenshots.</li>
+                        <li><strong>Smart & Contextual Summaries:</strong> Utilizes the <strong>Llama 4 Scout via Groq API</strong> model to generate structured summaries tailored to the event's theme (meeting, seminar, interview, etc.), identifying key points, decisions, and action items.</li>
+                        <li><strong>Multi-Format Export:</strong> Allows users to save complete reports in <code>.txt</code>, <code>.md</code>, or print them as a <code>.pdf</code>. Additionally, all audio and image files can be downloaded as a <code>.zip</code> archive.</li>
+                    </ul>
 
-            <h3>Kontak Developer</h3>
-            <p>
-                <b>Ir. Isparmo</b><br>
-                Website: <a href="https://www.isparmo.com" target="_blank" class="text-indigo-600 hover:underline">www.isparmo.com</a><br>
-                Email: <a href="mailto:mail@isparmo.com" class="text-indigo-600 hover:underline">mail@isparmo.com</a><br>
-                HP/WA: <a href="tel:+628121083060" class="text-indigo-600 hover:underline">0812 108 3060</a>
-            </p>
-        </div>
+                    <h3>2. System Architecture</h3>
+                    <h4>2.1 Architecture Diagram</h4>
+                    <pre>
+[Frontend: Browser (index.html)]
+ |
+ |--- Media Recording (MediaRecorder, getUserMedia)
+ |--- User Interaction (UI Events)
+ |
+ | REST API (HTTPS, JSON, FormData)
+ v
+[Backend: Node.js on Cloud Run (index.js)]
+ |
+ |--- 1. /api/transcribe
+ |--- 2. /api/analyze-image
+ |--- 3. /api/summarize
+ |--- 4. /api/generate-zip
+ |
+ | Groq Cloud API
+ v
+[AI Models: Llama-4 Scout, Whisper V3 Large Turbo]
+                    </pre>
+                    <h4>2.2 Main Components</h4>
+                    <ul>
+                        <li><strong>Frontend (Client-Side):</strong> Built with <code>index.html</code>. Responsible for handling the entire user interface (UI), managing the media recording process using Web APIs, handling image uploads and previews, and formatting the final output. It uses <strong>LocalStorage</strong> for temporary session state storage.</li>
+                        <li><strong>Backend (Server-Side):</strong> Built with <code>index.js</code> (Node.js & Express.js). Acts as a bridge between the frontend and the Groq API, providing RESTful endpoints to process files and return the results.</li>
+                        <li><strong>AI Services (Groq API):</strong> Uses the <code>whisper-large-v3-turbo</code> model for transcription and <code>meta-llama/llama-4-scout-17b-16e-instruct</code> for OCR and summarization.</li>
+                    </ul>
 
-        <!-- English Content -->
-        <div id="content-en" class="content-section bg-white p-6 sm:p-8 rounded-xl shadow-md hidden">
-            <h3>Description</h3>
-            <p>Asisten Pintar is a smart web application designed to transform meetings, lectures, or interview sessions into structured and actionable summaries. By combining various input sources like voice, images, and text, the app automatically creates comprehensive transcripts and notes.</p>
+                    <h3>3. Technology Stack</h3>
+                    <ul>
+                        <li><strong>Frontend:</strong> TailwindCSS, Vanilla JS (ES6 Modules), Web APIs (MediaRecorder, getUserMedia), browser-image-compression.</li>
+                        <li><strong>Backend:</strong> Node.js, Express.js, groq-sdk, multer, archiver.</li>
+                        <li><strong>AI Models:</strong> Whisper V3 Large Turbo, Llama 4 Scout 17B Instruct.</li>
+                    </ul>
 
-            <h3>Who Is This App For?</h3>
-            <p>Professionals, students, journalists, researchers, and anyone who needs to document discussions or presentations efficiently without losing important details.</p>
+                    <h3>4. Backend API</h3>
+                    <h4>4.1 Audio Transcription</h4>
+                    <ul>
+                        <li><strong>Endpoint:</strong> <code>POST /api/transcribe</code></li>
+                        <li><strong>Request:</strong> <code>FormData</code> with a <code>file</code> field (audio).</li>
+                    </ul>
+                    <h4>4.2 Image Analysis (OCR)</h4>
+                    <ul>
+                        <li><strong>Endpoint:</strong> <code>POST /api/analyze-image</code></li>
+                        <li><strong>Request:</strong> <code>FormData</code> with a <code>file</code> field (image).</li>
+                    </ul>
+                    <h4>4.3 Minutes Summarization</h4>
+                    <ul>
+                        <li><strong>Endpoint:</strong> <code>POST /api/summarize</code></li>
+                        <li><strong>Request:</strong> JSON body with <code>theme</code> and <code>content</code>.</li>
+                    </ul>
+                    <h4>4.4 Generate ZIP</h4>
+                    <ul>
+                        <li><strong>Endpoint:</strong> <code>POST /api/generate-zip</code></li>
+                        <li><strong>Request:</strong> <code>FormData</code> with <code>zipFilename</code> and multiple <code>file</code> fields.</li>
+                    </ul>
 
-            <h3>Why Use This App?</h3>
-            <ul>
-                <li><b>Save Time:</b> Drastically reduce the time spent on manual note-taking.</li>
-                <li><b>Increase Focus:</b> Allows you to fully focus on the discussion without the worry of jotting down every detail.</li>
-                <li><b>Structured Results:</b> Get neat, structured, and easily shareable outputs for your team or colleagues.</li>
-                <li><b>Multi-Modal:</b> Transforms verbal and visual information into searchable and analyzable text.</li>
-            </ul>
+                    <h3>5. Configuration</h3>
+                    <ul>
+                        <li><strong>Backend:</strong> Requires environment variables <code>GROQ_API_KEY_1</code>, <code>GROQ_API_KEY_2</code>, etc.</li>
+                        <li><strong>Frontend:</strong> The backend URL is set in the <code>BACKEND_URL</code> variable in <code>index.html</code>.</li>
+                    </ul>
 
-            <h3>Key Features</h3>
-            <ul>
-                <li>Multi-source Audio Recording (Microphone & System Audio)</li>
-                <li>Automatic Audio Transcription (Speech-to-Text)</li>
-                <li>Image & Screenshot Analysis (Image-to-Text)</li>
-                <li>Real-time Manual Note Input</li>
-                <li>AI-Powered Smart Summarization (powered by Llama models)</li>
-                <li>Export Reports to Multiple Formats (PDF, TXT, MD)</li>
-                <li>Download Assets (Audio Recording & Photo Collection in .zip format)</li>
-            </ul>
+                    <h3>6. Deployment</h3>
+                    <h4>6.1 Local Development</h4>
+                    <ol>
+                        <li><strong>Clone Repository:</strong> <code>git clone &lt;repository_url&gt;</code></li>
+                        <li><strong>Enter Backend Directory:</strong> <code>cd &lt;directory_name&gt;</code></li>
+                        <li><strong>Install Dependencies:</strong> <code>npm install</code></li>
+                        <li><strong>Set Environment Variable:</strong> <code>export GROQ_API_KEY_1="gsk_..."</code></li>
+                        <li><strong>Run Server:</strong> <code>node index.js</code></li>
+                        <li>Open the <code>index.html</code> file in a browser.</li>
+                    </ol>
+                    <h4>6.2 Deployment to Google Cloud Run</h4>
+                    <ol>
+                        <li><strong>Create a Dockerfile</strong> in the backend root directory.</li>
+                        <li><strong>Build Container Image:</strong> <code>docker build -t gcr.io/[PROJECT_ID]/asisten-pintar .</code></li>
+                        <li><strong>Push Image to GCR:</strong> <code>docker push gcr.io/[PROJECT_ID]/asisten-pintar</code></li>
+                        <li><strong>Deploy to Cloud Run:</strong>
+                            <pre>gcloud run deploy asisten-pintar-service \
+  --image gcr.io/[PROJECT_ID]/asisten-pintar \
+  --platform managed \
+  --region asia-southeast1 \
+  --allow-unauthenticated \
+  --set-env-vars="GROQ_API_KEY_1=gsk_..."</pre>
+                        </li>
+                    </ol>
 
-            <h3>Technology Stack</h3>
-            <div>
-                <span class="tech-badge">Frontend: HTML5</span>
-                <span class="tech-badge">Styling: Tailwind CSS</span>
-                <span class="tech-badge">Logic: Vanilla JavaScript</span>
-                <span class="tech-badge">Backend: Firebase Functions</span>
-                <span class="tech-badge">Server: Node.js, Express.js</span>
-                <span class="tech-badge">AI/ML: Groq API</span>
-                <span class="tech-badge">Models: Llama 3, Llama 4, Whisper</span>
-                <span class="tech-badge">Hosting: GitHub Pages & Firebase</span>
+                    <h3>7. Testing</h3>
+                    <p>Manual testing can be performed by following the application's main workflow:</p>
+                    <ol>
+                        <li>Open <code>index.html</code> in a browser.</li>
+                        <li>Fill in the event information.</li>
+                        <li>Start recording audio and ensure the transcript appears.</li>
+                        <li>Upload an image and ensure the OCR result appears in the transcript.</li>
+                        <li>Click "Create Summary" and verify that a correctly formatted Markdown summary appears.</li>
+                        <li>Test all download buttons (<code>.txt</code>, <code>.md</code>, <code>.pdf</code>, audio, <code>.zip</code>) and ensure the generated files are correct.</li>
+                    </ol>
+
+                    <h3>8. Limitations & Notes</h3>
+                    <ul>
+                        <li><strong>Input Quality:</strong> The accuracy of transcription and OCR is highly dependent on the quality of the audio (noise-free) and images (clear and not blurry).</li>
+                        <li><strong>LLM Potential Bias:</strong> Summaries generated by the AI may contain biases or hallucinations. The results should always be reviewed by a human for final accuracy.</li>
+                        <li><strong>Cost Management:</strong> The use of the Groq API is based on token consumption. The Indonesian language detection feature was added to save tokens by avoiding unnecessary translations.</li>
+                        <li><strong>Timeouts:</strong> Transcription and summarization processes have time limits to prevent long-running, costly processes.</li>
+                    </ul>
+
+                    <h3>9. Development Roadmap</h3>
+                    <ul>
+                        <li>Multi-language support.</li>
+                        <li>Integration with Google Docs / Notion.</li>
+                        <li>Real-time integration with Zoom/Meet APIs.</li>
+                        <li>Cloud-based session management.</li>
+                    </ul>
+                    
+                    <h3>10. Developer Contact</h3>
+                    <div class="text-slate-600 leading-relaxed bg-slate-50 p-6 rounded-xl border border-slate-200">
+                        <p class="font-bold text-slate-700">Ir. Isparmo</p>
+                        <p>Website: <a href="http://www.isparmo.com" target="_blank" class="text-indigo-600 hover:underline">www.isparmo.com</a></p>
+                        <p>Email: <a href="mailto:mail@isparmo.com" class="text-indigo-600 hover:underline">mail@isparmo.com</a></p>
+                        <p>Phone/WA: +62 812 108 3060</p>
+                    </div>
+                </section>
             </div>
-
-            <h3>Five Ideas for Future Features</h3>
-            <ol class="list-decimal pl-5">
-                <li><b>Speaker Diarization:</b> Automatically differentiate and label who is speaking in the transcript.</li>
-                <li><b>Calendar Integration:</b> Automatically pull event details (title, attendees) from Google Calendar or Outlook to pre-fill the form.</li>
-                <li><b>Real-time Collaboration:</b> Allow multiple users to add notes and images to the same session simultaneously.</li>
-                <li><b>Universal Search:</b> An advanced search feature to find information across all past sessions stored in the cloud.</li>
-                <li><b>Export to Other Platforms:</b> One-click buttons to send action items or summaries to Trello, Asana, or Slack.</li>
-            </ol>
-
-            <h3>Developer Contact</h3>
-            <p>
-                <b>Ir. Isparmo</b><br>
-                Website: <a href="https://www.isparmo.com" target="_blank" class="text-indigo-600 hover:underline">www.isparmo.com</a><br>
-                Email: <a href="mailto:mail@isparmo.com" class="text-indigo-600 hover:underline">mail@isparmo.com</a><br>
-                Phone/WA: <a href="tel:+628121083060" class="text-indigo-600 hover:underline">0812 108 3060</a>
-            </p>
-        </div>
+        </main>
         
         <footer class="text-center mt-8 text-sm text-slate-500">
-            <p id="footer-text">Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.</p>
+             <p>&copy; 2025 Asisten Pintar. All rights reserved.</p>
+             <p class="mt-1">A project by <a href="https://www.isparmo.com" target="_blank" class="font-semibold text-indigo-600 hover:underline">Ir. Isparmo</a></p>
         </footer>
     </div>
 
     <script>
-        const btnId = document.getElementById('btn-id');
-        const btnEn = document.getElementById('btn-en');
         const contentId = document.getElementById('content-id');
         const contentEn = document.getElementById('content-en');
-        const mainTitle = document.getElementById('main-title');
-        const mainSubtitle = document.getElementById('main-subtitle');
-        const footerText = document.getElementById('footer-text');
+        const btnId = document.getElementById('btn-id');
+        const btnEn = document.getElementById('btn-en');
 
-        btnId.addEventListener('click', () => {
-            contentId.classList.remove('hidden');
-            contentEn.classList.add('hidden');
-            btnId.classList.add('active');
-            btnEn.classList.remove('active');
-            document.documentElement.lang = 'id';
-            mainTitle.textContent = 'Tentang Asisten Pintar';
-            mainSubtitle.textContent = 'Sebuah Alat Pencatat Cerdas';
-            footerText.textContent = 'Dokumentasi untuk Asisten Pintar - Hackathon Meta-Hacktiv8 2025.';
-        });
+        function switchLanguage(lang) {
+            if (lang === 'id') {
+                contentId.classList.remove('hidden');
+                contentEn.classList.add('hidden');
+                btnId.classList.add('active');
+                btnEn.classList.remove('active');
+                document.documentElement.lang = 'id';
+            } else {
+                contentId.classList.add('hidden');
+                contentEn.classList.remove('hidden');
+                btnId.classList.remove('active');
+                btnEn.classList.add('active');
+                document.documentElement.lang = 'en';
+            }
+            localStorage.setItem('preferredLanguage', lang);
+        }
 
-        btnEn.addEventListener('click', () => {
-            contentEn.classList.remove('hidden');
-            contentId.classList.add('hidden');
-            btnEn.classList.add('active');
-            btnId.classList.remove('active');
-            document.documentElement.lang = 'en';
-            mainTitle.textContent = 'About Asisten Pintar';
-            mainSubtitle.textContent = 'A Smart Note-Taking Tool';
-            footerText.textContent = 'Documentation for Asisten Pintar - Meta-Hacktiv8 Hackathon 2025.';
+        // On page load, check for saved language preference
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('preferredLanguage') || 'id';
+            switchLanguage(savedLang);
         });
     </script>
+
 </body>
 </html>
